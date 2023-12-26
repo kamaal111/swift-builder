@@ -1,4 +1,4 @@
-import swift_builder
+import SwiftBuilder
 
 let a = 17
 let b = 25
