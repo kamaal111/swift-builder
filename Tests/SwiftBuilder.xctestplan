@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "FFEF1F91-79E7-4EA9-8958-77209D58DA27",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftBuilderTests",
+        "name" : "SwiftBuilderTests"
+      }
+    }
+  ],
+  "version" : 1
+}

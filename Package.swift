@@ -42,7 +42,7 @@ let package = Package(
 
         // A test target used to develop the macro implementation.
         .testTarget(
-            name: "swift-builderTests",
+            name: "SwiftBuilderTests",
             dependencies: [
                 "swift-builderMacros",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),

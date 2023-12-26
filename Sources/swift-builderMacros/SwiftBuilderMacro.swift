@@ -5,22 +5,23 @@
 //  Created by Kamaal M Farah on 26/12/2023.
 //
 
-import SwiftCompilerPlugin
 import SwiftSyntax
-import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
+import SwiftSyntaxBuilder
+import SwiftCompilerPlugin
 
-public struct ObjectBuilder: DeclarationMacro {
+public struct ObjectBuilder: MemberMacro {
     public static func expansion(
-        of node: some SwiftSyntax.FreestandingMacroExpansionSyntax,
-        in context: some SwiftSyntaxMacros.MacroExpansionContext
-    ) throws -> [SwiftSyntax.DeclSyntax] {
+        of attribute: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
         return []
     }
 }
 
 @main
-struct swift_builderPlugin: CompilerPlugin {
+struct SwiftBuilderPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         ObjectBuilder.self
     ]

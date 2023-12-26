@@ -1,42 +1,47 @@
+//
+//  SwiftBuilderTests.swift
+//
+//
+//  Created by Kamaal M Farah on 26/12/2023.
+//
+
+import XCTest
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
-import XCTest
 
 // Macro implementations build for the host, so the corresponding module is not available when cross-compiling. Cross-compiled tests may still make use of the macro itself in end-to-end tests.
 #if canImport(swift_builderMacros)
 import swift_builderMacros
 
 let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
+    "ObjectBuilder": ObjectBuilder.self,
 ]
 #endif
 
-final class swift_builderTests: XCTestCase {
+final class SwiftBuilderTests: XCTestCase {
     func testMacro() throws {
         #if canImport(swift_builderMacros)
         assertMacroExpansion(
             """
-            #stringify(a + b)
+            @ObjectBuilder
+            class SimpleObject {
+                var id: UUID?
+
+                init() { }
+            }
             """,
             expandedSource: """
-            (a + b, "a + b")
-            """,
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
-    }
+            class SimpleObject {
+                var id: UUID?
 
-    func testMacroWithStringLiteral() throws {
-        #if canImport(swift_builderMacros)
-        assertMacroExpansion(
-            #"""
-            #stringify("Hello, \(name)")
-            """#,
-            expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
-            """#,
+                init() { }
+
+                func setId(_ id: UUID?) -> SimpleObject {
+                    self.id = id
+                    return self
+                }
+            }
+            """,
             macros: testMacros
         )
         #else
