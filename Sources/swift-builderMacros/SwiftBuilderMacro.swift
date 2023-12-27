@@ -24,8 +24,9 @@ public struct ObjectBuilder: MemberMacro {
         let className = classDecleration.name.text
         let setters = try classDecleration.memberBlock.members
             .compactMap({ member in member.decl.as(VariableDeclSyntax.self) })
+            .filter({ variableMember in variableMember.bindingSpecifier.text == "var" })
             .compactMap({ variableMember in
-                try variableMember.bindings
+                return try variableMember.bindings
                     .compactMap({ binding -> FunctionDeclSyntax? in
                         guard let id = binding.pattern.as(IdentifierPatternSyntax.self) else { return nil }
                         guard let typeAnnotation = binding.typeAnnotation?.type else { return nil }
@@ -42,13 +43,12 @@ public struct ObjectBuilder: MemberMacro {
 
                         let identifier = id.identifier
                         let header = "func set\(identifier.text.capitalized)(_ \(identifier): \(stringTypeAnnotation)) -> \(className)"
-                        let function = try FunctionDeclSyntax(SyntaxNodeString(stringLiteral: header)) {
-                            """
+                        return try FunctionDeclSyntax(SyntaxNodeString(stringLiteral: header)) {
+                            CodeBlockItemListSyntax("""
                             self.\(identifier) = \(identifier)
-                                return self
-                            """
+                            return self
+                            """)
                         }
-                        return function
                     })
             })
             .flatMap({ setter in setter })

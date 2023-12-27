@@ -3,17 +3,18 @@ import SwiftBuilder
 
 @ObjectBuilder
 class SimpleObject {
-    var id: UUID?
-    var name: String
+    private(set) var id: UUID?
+    private(set) var name: String
 
     init(name: String) {
         self.name = name
     }
 }
 
-let object = SimpleObject(name: "Kamaal")
-    .setId(UUID())
-    .setName("Changed")
+let id = UUID(uuidString: "BE583F78-E47F-4F86-AC67-B6161D8665BB")
+let object = SimpleObject(name: "Me")
+    .setId(id)
+    .setName("You")
 
-print("name", object.name)
-print("id", object.id as Any)
+print("name ->", object.name)
+print("id ->", object.id as Any)
