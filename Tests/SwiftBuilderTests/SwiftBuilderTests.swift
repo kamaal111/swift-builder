@@ -23,23 +23,31 @@ final class SwiftBuilderTests: XCTestCase {
         #if canImport(swift_builderMacros)
         assertMacroExpansion(
             """
+            protocol SimpleProtocol { }
+            struct SimpleProtocolUser: SimpleProtocol { }
             @ObjectBuilder
             class SimpleObject {
                 var id: UUID?
-                var name: String
+                private(set) var name: String
+                var protocolUser: any SimpleProtocol
 
-                init(name: String) {
+                init(name: String, protocolUser: some SimpleProtocol) {
                     self.name = name
+                    self.protocolUser = protocolUser
                 }
             }
             """,
             expandedSource: """
+            protocol SimpleProtocol { }
+            struct SimpleProtocolUser: SimpleProtocol { }
             class SimpleObject {
                 var id: UUID?
-                var name: String
+                private(set) var name: String
+                var protocolUser: any SimpleProtocol
 
-                init(name: String) {
+                init(name: String, protocolUser: some SimpleProtocol) {
                     self.name = name
+                    self.protocolUser = protocolUser
                 }
 
                 func setId(_ id: UUID?) -> SimpleObject  {
@@ -49,6 +57,11 @@ final class SwiftBuilderTests: XCTestCase {
 
                 func setName(_ name: String) -> SimpleObject  {
                     self.name = name
+                    return self
+                }
+
+                func setProtocoluser(_ protocolUser: any  SimpleProtocol) -> SimpleObject  {
+                    self.protocolUser = protocolUser
                     return self
                 }
             }

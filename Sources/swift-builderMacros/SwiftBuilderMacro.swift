@@ -16,17 +16,18 @@ public struct ObjectBuilder: MemberMacro {
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let classDecleration = declaration.as(ClassDeclSyntax.self) else {
-            // TODO: Emit error here
-            return []
+        if let classDecleration = declaration.as(ClassDeclSyntax.self) {
+            let className = classDecleration.name
+            let mutableVariableDeclarations = getMutableVariablesDeclarations(classDecleration)
+            let setters = try transformVariableDeclarationBindingsToSetters(mutableVariableDeclarations, className: className)
+
+            return setters
+                .map { setter in DeclSyntax(setter) }
         }
 
-        let className = classDecleration.name
-        let mutableVariableDeclarations = getMutableVariablesDeclarations(classDecleration)
-        let setters = try transformVariableDeclarationBindingsToSetters(mutableVariableDeclarations, className: className)
+        // TODO: Support struct as well
 
-        return setters
-            .map { setter in DeclSyntax(setter) }
+        return []
     }
 
     private static func transformVariableDeclarationBindingsToSetters(
@@ -94,6 +95,11 @@ public struct ObjectBuilder: MemberMacro {
 
         if let typeAnnotation = typeAnnotation.as(IdentifierTypeSyntax.self) {
             return typeAnnotation.name
+        }
+
+        if let typeAnnotation = typeAnnotation.as(SomeOrAnyTypeSyntax.self),
+           let constraint = typeAnnotation.constraint.as(IdentifierTypeSyntax.self) {
+            return "\(typeAnnotation.someOrAnySpecifier) \(constraint.name)"
         }
 
         return nil
