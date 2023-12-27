@@ -42,12 +42,12 @@ final class SwiftBuilderTests: XCTestCase {
                     self.name = name
                 }
 
-                func setId(_ id: UUID?) -> Self {
+                func setId(_ id: UUID?) -> SimpleObject {
                     self.id = id
                     return self
                 }
 
-                func setName(_ name: String) -> Self {
+                func setName(_ name: String) -> SimpleObject {
                     self.name = name
                     return self
                 }

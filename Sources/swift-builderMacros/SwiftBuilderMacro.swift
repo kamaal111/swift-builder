@@ -21,6 +21,7 @@ public struct ObjectBuilder: MemberMacro {
             return []
         }
 
+        let className = classDecleration.name.text
         let setters = try classDecleration.memberBlock.members
             .compactMap({ member in member.decl.as(VariableDeclSyntax.self) })
             .compactMap({ variableMember in
@@ -39,9 +40,11 @@ public struct ObjectBuilder: MemberMacro {
                             return nil
                         }
 
-                        let function = try FunctionDeclSyntax("func set\(raw: id.identifier.text.capitalized)(_ \(id.identifier): \(raw: stringTypeAnnotation)) -> Self") {
+                        let identifier = id.identifier
+                        let header = "func set\(identifier.text.capitalized)(_ \(identifier): \(stringTypeAnnotation)) -> \(className)"
+                        let function = try FunctionDeclSyntax(SyntaxNodeString(stringLiteral: header)) {
                             """
-                            self.\(id.identifier) = \(id.identifier)
+                            self.\(identifier) = \(identifier)
                                 return self
                             """
                         }
