@@ -16,7 +16,42 @@ public struct ObjectBuilder: MemberMacro {
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        return []
+        guard let classDecleration = declaration.as(ClassDeclSyntax.self) else {
+            // TODO: Emit error here
+            return []
+        }
+
+        let setters = try classDecleration.memberBlock.members
+            .compactMap({ member in member.decl.as(VariableDeclSyntax.self) })
+            .compactMap({ variableMember in
+                try variableMember.bindings
+                    .compactMap({ binding -> FunctionDeclSyntax? in
+                        guard let id = binding.pattern.as(IdentifierPatternSyntax.self) else { return nil }
+                        guard let typeAnnotation = binding.typeAnnotation?.type else { return nil }
+
+                        let stringTypeAnnotation: String
+                        if let optionalTypeAnnotation = typeAnnotation.as(OptionalTypeSyntax.self),
+                           let wrappedType = optionalTypeAnnotation.wrappedType.as(IdentifierTypeSyntax.self) {
+                            stringTypeAnnotation = "\(wrappedType.name)?"
+                        } else if let typeAnnotation = typeAnnotation.as(IdentifierTypeSyntax.self) {
+                            stringTypeAnnotation = typeAnnotation.name.text
+                        } else {
+                            return nil
+                        }
+
+                        let function = try FunctionDeclSyntax("func set\(raw: id.identifier.text.capitalized)(_ \(id.identifier): \(raw: stringTypeAnnotation)) -> Self") {
+                            """
+                            self.\(id.identifier) = \(id.identifier)
+                                return self
+                            """
+                        }
+                        return function
+                    })
+            })
+            .flatMap({ setter in setter })
+
+        return setters
+            .map({ setter in DeclSyntax(setter) })
     }
 }
 

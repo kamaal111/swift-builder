@@ -26,18 +26,29 @@ final class SwiftBuilderTests: XCTestCase {
             @ObjectBuilder
             class SimpleObject {
                 var id: UUID?
+                var name: String
 
-                init() { }
+                init(name: String) {
+                    self.name = name
+                }
             }
             """,
             expandedSource: """
             class SimpleObject {
                 var id: UUID?
+                var name: String
 
-                init() { }
+                init(name: String) {
+                    self.name = name
+                }
 
-                func setId(_ id: UUID?) -> SimpleObject {
+                func setId(_ id: UUID?) -> Self {
                     self.id = id
+                    return self
+                }
+
+                func setName(_ name: String) -> Self {
+                    self.name = name
                     return self
                 }
             }

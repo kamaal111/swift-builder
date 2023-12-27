@@ -5,5 +5,5 @@
 //  Created by Kamaal M Farah on 26/12/2023.
 //
 
-@attached(member, names: named(func))
+@attached(member, names: arbitrary)
 public macro ObjectBuilder() = #externalMacro(module: "swift_builderMacros", type: "ObjectBuilder")
