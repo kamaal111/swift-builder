@@ -1,8 +1,8 @@
 //
-//  SwiftBuilderMacro.swift
+//  ObjectBuilder.swift
+//  
 //
-//
-//  Created by Kamaal M Farah on 26/12/2023.
+//  Created by Kamaal M Farah on 28/12/2023.
 //
 
 import SwiftSyntax
@@ -10,10 +10,10 @@ import SwiftSyntaxMacros
 import SwiftSyntaxBuilder
 import SwiftCompilerPlugin
 
-public enum ObjectBuilderErrors: CustomStringConvertible, Error {
+enum ObjectBuilderErrors: CustomStringConvertible, Error {
     case unsupportedType
 
-    public var description: String {
+    var description: String {
         switch self {
         case .unsupportedType: "@ObjectBuilder only supports classes"
         }
@@ -114,11 +114,4 @@ public struct ObjectBuilder: MemberMacro {
 
         return nil
     }
-}
-
-@main
-struct SwiftBuilderPlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
-        ObjectBuilder.self
-    ]
 }

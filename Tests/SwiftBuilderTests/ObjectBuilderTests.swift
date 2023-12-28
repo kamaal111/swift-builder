@@ -1,8 +1,8 @@
 //
-//  SwiftBuilderTests.swift
+//  ObjectBuilderTests.swift
+//  
 //
-//
-//  Created by Kamaal M Farah on 26/12/2023.
+//  Created by Kamaal M Farah on 28/12/2023.
 //
 
 import XCTest
@@ -10,11 +10,11 @@ import SwiftSyntaxMacros
 import SwiftBuilderMacros
 import SwiftSyntaxMacrosTestSupport
 
-let testMacros: [String: Macro.Type] = [
+private let testMacros: [String: Macro.Type] = [
     "ObjectBuilder": ObjectBuilder.self,
 ]
 
-final class SwiftBuilderTests: XCTestCase {
+final class ObjectBuilderTests: XCTestCase {
     func testObjectBuilderMacro() throws {
         assertMacroExpansion(
             """
