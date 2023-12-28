@@ -6,4 +6,4 @@
 //
 
 @attached(member, names: arbitrary)
-public macro ObjectBuilder() = #externalMacro(module: "swift_builderMacros", type: "ObjectBuilder")
+public macro ObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type: "ObjectBuilder")

@@ -7,7 +7,7 @@
 
 import XCTest
 import SwiftSyntaxMacros
-import swift_builderMacros
+import SwiftBuilderMacros
 import SwiftSyntaxMacrosTestSupport
 
 let testMacros: [String: Macro.Type] = [
