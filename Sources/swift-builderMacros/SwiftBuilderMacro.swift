@@ -10,6 +10,16 @@ import SwiftSyntaxMacros
 import SwiftSyntaxBuilder
 import SwiftCompilerPlugin
 
+public enum ObjectBuilderErrors: CustomStringConvertible, Error {
+    case unsupportedType
+
+    public var description: String {
+        switch self {
+        case .unsupportedType: "@ObjectBuilder only supports classes"
+        }
+    }
+}
+
 public struct ObjectBuilder: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
@@ -27,7 +37,7 @@ public struct ObjectBuilder: MemberMacro {
 
         // TODO: Support struct as well
 
-        return []
+        throw ObjectBuilderErrors.unsupportedType
     }
 
     private static func transformVariableDeclarationBindingsToSetters(

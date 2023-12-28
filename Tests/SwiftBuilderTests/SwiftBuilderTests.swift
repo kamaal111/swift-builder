@@ -7,20 +7,15 @@
 
 import XCTest
 import SwiftSyntaxMacros
-import SwiftSyntaxMacrosTestSupport
-
-// Macro implementations build for the host, so the corresponding module is not available when cross-compiling. Cross-compiled tests may still make use of the macro itself in end-to-end tests.
-#if canImport(swift_builderMacros)
 import swift_builderMacros
+import SwiftSyntaxMacrosTestSupport
 
 let testMacros: [String: Macro.Type] = [
     "ObjectBuilder": ObjectBuilder.self,
 ]
-#endif
 
 final class SwiftBuilderTests: XCTestCase {
-    func testMacro() throws {
-        #if canImport(swift_builderMacros)
+    func testObjectBuilderMacro() throws {
         assertMacroExpansion(
             """
             protocol SimpleProtocol { }
@@ -68,8 +63,23 @@ final class SwiftBuilderTests: XCTestCase {
             """,
             macros: testMacros
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+    }
+
+    func testObjectBuilderMacroWithEnums() {
+        assertMacroExpansion(
+            """
+            @ObjectBuilder
+            enum SimpleEnum {
+                case hello
+            }
+            """,
+            expandedSource: """
+            enum SimpleEnum {
+                case hello
+            }
+            """,
+            diagnostics: [.init(message: "@ObjectBuilder only supports classes", line: 1, column: 1)],
+            macros: testMacros
+        )
     }
 }
