@@ -8,7 +8,6 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 import SwiftSyntaxBuilder
-import SwiftCompilerPlugin
 
 enum ObjectBuilderErrors: CustomStringConvertible, Error {
     case unsupportedType
@@ -26,18 +25,23 @@ public struct ObjectBuilder: MemberMacro {
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
+        var objectName: TokenSyntax?
+        var mutableVariableDeclarations: [VariableDeclSyntax]?
         if let classDecleration = declaration.as(ClassDeclSyntax.self) {
-            let className = classDecleration.name
-            let mutableVariableDeclarations = getMutableVariablesDeclarations(classDecleration)
-            let setters = try transformVariableDeclarationBindingsToSetters(mutableVariableDeclarations, className: className)
-
-            return setters
-                .map { setter in DeclSyntax(setter) }
+            objectName = classDecleration.name
+            mutableVariableDeclarations = getMutableVariablesDeclarations(classDecleration)
         }
 
         // TODO: Support struct as well
 
-        throw ObjectBuilderErrors.unsupportedType
+        guard let objectName, let mutableVariableDeclarations else { throw ObjectBuilderErrors.unsupportedType }
+
+        let setters = try transformVariableDeclarationBindingsToSetters(
+            mutableVariableDeclarations,
+            className: objectName
+        )
+        return setters
+            .map { setter in DeclSyntax(setter) }
     }
 
     private static func transformVariableDeclarationBindingsToSetters(
