@@ -22,8 +22,9 @@ class SimpleObject {
 @LazyObjectBuilder
 class SimpleLazyObject: LazyBuildable {
     var name: String?
+    var id: UUID?
 
-    init(name: String? = nil) {
+    init(name: String? = nil, id: UUID? = nil) {
         self.name = name
     }
 
@@ -32,7 +33,7 @@ class SimpleLazyObject: LazyBuildable {
     }
 
     static func build(_ container: [LazyObjectBuilderProperties : Any]) -> SimpleLazyObject {
-        SimpleLazyObject(name: container[.name] as? String)
+        SimpleLazyObject(name: container[.name] as? String, id: container[.id] as? UUID)
     }
 }
 

@@ -60,11 +60,20 @@ final class LazyObjectBuilderTests: XCTestCase {
                 typealias LazyBuildableProperties = LazyObjectBuilderProperties
 
                 enum LazyObjectBuilderProperties {
-                    case id, name
+                    case id
+                    case name
                 }
 
                 class Builder {
                     private var container = [LazyObjectBuilderProperties: Any] ()
+                    func setId(_ id: UUID?) -> Builder {
+                        self.container[.id] = id as Any
+                        return self
+                    }
+                    func setName(_ name: String?) -> Builder {
+                        self.container[.name] = name as Any
+                        return self
+                    }
                 }
             }
             """,

@@ -20,7 +20,9 @@ enum LazyObjectBuilderErrors: CustomStringConvertible, Error {
     }
 }
 
-private let PROPERTIES_ENUM_NAME = "LazyObjectBuilderProperties"
+private let PROPERTIES_ENUM_NAME = TokenSyntax("LazyObjectBuilderProperties")
+private let BUILDER_NAME = TokenSyntax("Builder")
+private let BUILDER_CONTAINER_NAME = TokenSyntax("container")
 
 public struct LazyObjectBuilder: MemberMacro {
     public static func expansion(
@@ -44,15 +46,27 @@ public struct LazyObjectBuilder: MemberMacro {
             variableNames,
             named: PROPERTIES_ENUM_NAME
         )
-        let lazyBuildSelfTypeAlias = try SyntaxGenerators.generateTypeAlias(name: "LazyBuildableSelf", value: objectName)
+        let lazyBuildSelfTypeAlias = try SyntaxGenerators.generateTypeAlias(
+            name: "LazyBuildableSelf",
+            value: objectName
+        )
         let lazyBuildablePropertiesTypeAlias = try SyntaxGenerators.generateTypeAlias(
             name: "LazyBuildableProperties",
-            value: TokenSyntax(stringLiteral: PROPERTIES_ENUM_NAME)
+            value: PROPERTIES_ENUM_NAME
         )
-        let builderClass = try ClassDeclSyntax("class Builder") {
-            try SyntaxGenerators.generateInitializedPrivateProperty(named: "container", value: "[LazyObjectBuilderProperties: Any]()")
-            MemberBlockItemListSyntax(stringLiteral: """
-            """)
+        let setters = try SyntaxGenerators.generateDynamicSetters(
+            mutableVariableDeclarations,
+            builderName: BUILDER_NAME,
+            containerPropertyName: BUILDER_CONTAINER_NAME
+        )
+        let builderClass = try ClassDeclSyntax("class \(BUILDER_NAME)") {
+            try SyntaxGenerators.generateInitializedPrivateProperty(
+                named: BUILDER_CONTAINER_NAME,
+                value: "[\(PROPERTIES_ENUM_NAME): Any]()"
+            )
+            for setter in setters {
+                setter
+            }
         }
 
         return [

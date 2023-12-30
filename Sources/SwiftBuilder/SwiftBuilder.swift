@@ -12,6 +12,10 @@ public macro ObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type
 @attached(member, names: arbitrary)
 public macro LazyObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type: "LazyObjectBuilder")
 
+public enum LazyObjectBuilderErrors: Error {
+    case validationError
+}
+
 public protocol LazyBuildable {
     associatedtype LazyBuildableProperties: Hashable
     associatedtype LazyBuildableSelf: LazyBuildable

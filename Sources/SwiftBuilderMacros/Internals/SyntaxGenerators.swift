@@ -15,22 +15,40 @@ struct SyntaxGenerators {
         _ variableDeclarations: [VariableDeclSyntax],
         objectName: TokenSyntax
     ) throws -> [FunctionDeclSyntax] {
-        try variableDeclarations
-            .flatMap { variableDeclaration in
-                try variableDeclaration.bindings
-                    .compactMap { binding in try generateDirectSetter(binding, objectName: objectName) }
+        try generateSetters(variableDeclarations) { binding in
+            try generateSetter(binding, returnType: objectName) { identifier in
+                """
+                self.\(identifier) = \(identifier)
+                return self
+                """
             }
+        }
+    }
+
+    static func generateDynamicSetters(
+        _ variableDeclarations: [VariableDeclSyntax],
+        builderName: TokenSyntax,
+        containerPropertyName: TokenSyntax
+    ) throws -> [FunctionDeclSyntax] {
+        try generateSetters(variableDeclarations) { binding in
+            try generateSetter(binding, returnType: builderName) { identifier in
+                """
+                self.\(containerPropertyName)[.\(identifier)] = \(identifier) as Any
+                return self
+                """
+            }
+        }
     }
 
     static func generatePropertiesEnum(
         _ caseNames: [TokenSyntax],
-        named: String
+        named: TokenSyntax
     ) throws -> EnumDeclSyntax {
-        try EnumDeclSyntax("""
-        enum \(raw: named) {
-            case \(raw: caseNames.map(\.text).joined(separator: ", "))
+        try EnumDeclSyntax("enum \(named)") {
+            for name in caseNames {
+                try EnumCaseDeclSyntax("case \(name)")
+            }
         }
-        """)
     }
 
     static func generateInitializedPrivateProperty(named: TokenSyntax, value: TokenSyntax) throws -> VariableDeclSyntax {
@@ -41,21 +59,33 @@ struct SyntaxGenerators {
         try TypeAliasDeclSyntax("typealias \(name) = \(value)")
     }
 
-    private static func generateDirectSetter(
+    private static func generateSetter(
         _ binding: PatternBindingListSyntax.Element,
-        objectName: TokenSyntax
+        returnType: TokenSyntax,
+        body: (TokenSyntax) -> CodeBlockItemListSyntax
     ) throws -> FunctionDeclSyntax? {
         guard let typeAnnotation = SyntaxExtractor.extractTypeAnnotation(binding) else { return nil }
         guard let identifier = SyntaxExtractor.extractIdentifier(binding) else { return nil }
 
         let header = SyntaxNodeString(
-            stringLiteral: "func set\(identifier.text.capitalized)(_ \(identifier): \(typeAnnotation)) -> \(objectName)"
+            stringLiteral: "func set\(identifier.text.capitalized)(_ \(identifier): \(typeAnnotation)) -> \(returnType)"
         )
         return try FunctionDeclSyntax(header, bodyBuilder: {
-            CodeBlockItemListSyntax("""
-            self.\(identifier) = \(identifier)
-            return self
-            """)
+            body(identifier)
         })
+    }
+
+    private static func generateSetters(
+        _ variableDeclarations: [VariableDeclSyntax],
+        body: (PatternBindingListSyntax.Element) throws -> FunctionDeclSyntax?
+    ) throws -> [FunctionDeclSyntax] {
+        try variableDeclarations
+            .flatMap({ variableDeclaration in
+                try variableDeclaration
+                    .bindings
+                    .compactMap({ binding in
+                        try body(binding)
+                    })
+            })
     }
 }
