@@ -33,6 +33,14 @@ struct SyntaxGenerators {
         """)
     }
 
+    static func generateInitializedPrivateProperty(named: TokenSyntax, value: TokenSyntax) throws -> VariableDeclSyntax {
+        try VariableDeclSyntax("private var \(named) = \(value)")
+    }
+
+    static func generateTypeAlias(name: TokenSyntax, value: TokenSyntax) throws -> TypeAliasDeclSyntax {
+        try TypeAliasDeclSyntax("typealias \(name) = \(value)")
+    }
+
     private static func generateDirectSetter(
         _ binding: PatternBindingListSyntax.Element,
         objectName: TokenSyntax

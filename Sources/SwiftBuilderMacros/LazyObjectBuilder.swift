@@ -20,6 +20,8 @@ enum LazyObjectBuilderErrors: CustomStringConvertible, Error {
     }
 }
 
+private let PROPERTIES_ENUM_NAME = "LazyObjectBuilderProperties"
+
 public struct LazyObjectBuilder: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
@@ -40,12 +42,24 @@ public struct LazyObjectBuilder: MemberMacro {
             .flatMap({ variableDeclaration in SyntaxExtractor.extractVariableNames(variableDeclaration) })
         let propertiesEnum = try SyntaxGenerators.generatePropertiesEnum(
             variableNames,
-            named: "LazyObjectBuilderProperties"
+            named: PROPERTIES_ENUM_NAME
         )
+        let lazyBuildSelfTypeAlias = try SyntaxGenerators.generateTypeAlias(name: "LazyBuildableSelf", value: objectName)
+        let lazyBuildablePropertiesTypeAlias = try SyntaxGenerators.generateTypeAlias(
+            name: "LazyBuildableProperties",
+            value: TokenSyntax(stringLiteral: PROPERTIES_ENUM_NAME)
+        )
+        let builderClass = try ClassDeclSyntax("class Builder") {
+            try SyntaxGenerators.generateInitializedPrivateProperty(named: "container", value: "[LazyObjectBuilderProperties: Any]()")
+            MemberBlockItemListSyntax(stringLiteral: """
+            """)
+        }
+
         return [
-            DeclSyntax("typealias LazyBuildableSelf = \(objectName)"),
-            DeclSyntax("typealias LazyBuildableProperties = LazyObjectBuilderProperties"),
-            DeclSyntax(propertiesEnum)
+            DeclSyntax(lazyBuildSelfTypeAlias),
+            DeclSyntax(lazyBuildablePropertiesTypeAlias),
+            DeclSyntax(propertiesEnum),
+            DeclSyntax(builderClass)
         ]
     }
 }
