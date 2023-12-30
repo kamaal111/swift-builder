@@ -7,3 +7,6 @@
 
 @attached(member, names: arbitrary)
 public macro ObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type: "ObjectBuilder")
+
+@attached(member, names: arbitrary)
+public macro LazyObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type: "LazyObjectBuilder")
