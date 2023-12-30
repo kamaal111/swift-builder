@@ -74,6 +74,12 @@ final class LazyObjectBuilderTests: XCTestCase {
                         self.container[.name] = name as Any
                         return self
                     }
+                    func build() throws -> SimpleObject {
+                        guard SimpleObject.validate(container) else {
+                            throw LazyObjectBuilderErrors.validationError
+                        }
+                        return SimpleObject.build(container)
+                    }
                 }
             }
             """,

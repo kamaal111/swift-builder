@@ -67,6 +67,12 @@ public struct LazyObjectBuilder: MemberMacro {
             for setter in setters {
                 setter
             }
+            try FunctionDeclSyntax("func build() throws -> \(objectName)") {
+                CodeBlockItemListSyntax("""
+                guard \(objectName).validate(container) else { throw LazyObjectBuilderErrors.validationError }
+                return \(objectName).build(container)
+                """)
+            }
         }
 
         return [
