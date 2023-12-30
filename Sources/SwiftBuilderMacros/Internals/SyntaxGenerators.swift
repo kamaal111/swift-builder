@@ -11,15 +11,26 @@ import SwiftSyntaxBuilder
 struct SyntaxGenerators {
     private init() { }
 
-    static func generateSetters(
+    static func generateDirectSetters(
         _ variableDeclarations: [VariableDeclSyntax],
-        className: TokenSyntax
+        objectName: TokenSyntax
     ) throws -> [FunctionDeclSyntax] {
         try variableDeclarations
             .flatMap { variableDeclaration in
                 try variableDeclaration.bindings
-                    .compactMap { binding in try generateSetter(binding, className: className) }
+                    .compactMap { binding in try generateDirectSetter(binding, objectName: objectName) }
             }
+    }
+
+    static func generateLazySetters(
+        _ variableDeclarations: [VariableDeclSyntax],
+        objectName: TokenSyntax
+    ) throws -> [FunctionDeclSyntax] {
+        return []
+    }
+
+    static func generateBuilderContainerProperty(propertyEnumName: TokenSyntax) throws -> VariableDeclSyntax {
+        try VariableDeclSyntax("private var _container = [\(propertyEnumName): Any]()")
     }
 
     static func generatePropertiesEnum(propertyNames: [TokenSyntax], objectName: TokenSyntax) throws -> EnumDeclSyntax {
@@ -31,15 +42,15 @@ struct SyntaxGenerators {
         """)
     }
 
-    private static func generateSetter(
+    private static func generateDirectSetter(
         _ binding: PatternBindingListSyntax.Element,
-        className: TokenSyntax
+        objectName: TokenSyntax
     ) throws -> FunctionDeclSyntax? {
         guard let typeAnnotation = SyntaxExtractor.extractTypeAnnotation(binding) else { return nil }
         guard let identifier = SyntaxExtractor.extractIdentifier(binding) else { return nil }
 
         let header = SyntaxNodeString(
-            stringLiteral: "func set\(identifier.text.capitalized)(_ \(identifier): \(typeAnnotation)) -> \(className)"
+            stringLiteral: "func set\(identifier.text.capitalized)(_ \(identifier): \(typeAnnotation)) -> \(objectName)"
         )
         return try FunctionDeclSyntax(header, bodyBuilder: {
             CodeBlockItemListSyntax("""

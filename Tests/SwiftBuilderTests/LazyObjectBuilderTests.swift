@@ -89,6 +89,8 @@ final class LazyObjectBuilderTests: XCTestCase {
                 enum SimpleObjectProperties {
                     case id, name
                 }
+
+                private var _container = [SimpleObjectProperties : Any] ()
             }
             """,
             macros: testMacros

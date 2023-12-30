@@ -40,8 +40,14 @@ public struct LazyObjectBuilder: MemberMacro {
             propertyNames: mutableVariableNames,
             objectName: objectName
         )
+        let builderContainerProperty = try SyntaxGenerators.generateBuilderContainerProperty(
+            propertyEnumName: propertiesEnum.name
+        )
+        let setters = try SyntaxGenerators.generateLazySetters(mutableVariableDeclarations, objectName: objectName)
+            .map({ setter in DeclSyntax(setter) })
         return [
-            DeclSyntax(propertiesEnum)
-        ]
+            DeclSyntax(propertiesEnum),
+            DeclSyntax(builderContainerProperty)
+        ] + setters
     }
 }
