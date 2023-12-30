@@ -10,10 +10,12 @@ import SwiftSyntaxMacros
 
 enum LazyObjectBuilderErrors: CustomStringConvertible, Error {
     case unsupportedType
+    case insufficientProperties
 
     var description: String {
         switch self {
         case .unsupportedType: "@\(String(describing: LazyObjectBuilder.self)) only supports classes"
+        case .insufficientProperties: "Must have atleast mutable 1 property"
         }
     }
 }
@@ -31,23 +33,19 @@ public struct LazyObjectBuilder: MemberMacro {
             mutableVariableDeclarations = SyntaxExtractor.extractMutableVariablesDeclarations(classDecleration)
         }
 
-        guard let objectName, let mutableVariableDeclarations else { throw LazyObjectBuilderErrors.unsupportedType }
+        guard let mutableVariableDeclarations, let objectName else { throw LazyObjectBuilderErrors.unsupportedType }
+        guard !mutableVariableDeclarations.isEmpty else { throw LazyObjectBuilderErrors.insufficientProperties }
 
-        let mutableVariableNames = SyntaxExtractor.extractVariableNames(mutableVariableDeclarations)
-        guard !mutableVariableNames.isEmpty else { return [] }
-
+        let variableNames = mutableVariableDeclarations
+            .flatMap({ variableDeclaration in SyntaxExtractor.extractVariableNames(variableDeclaration) })
         let propertiesEnum = try SyntaxGenerators.generatePropertiesEnum(
-            propertyNames: mutableVariableNames,
-            objectName: objectName
+            variableNames,
+            named: "LazyObjectBuilderProperties"
         )
-        let builderContainerProperty = try SyntaxGenerators.generateBuilderContainerProperty(
-            propertyEnumName: propertiesEnum.name
-        )
-        let setters = try SyntaxGenerators.generateLazySetters(mutableVariableDeclarations, objectName: objectName)
-            .map({ setter in DeclSyntax(setter) })
         return [
-            DeclSyntax(propertiesEnum),
-            DeclSyntax(builderContainerProperty)
-        ] + setters
+            DeclSyntax("typealias LazyBuildableSelf = \(objectName)"),
+            DeclSyntax("typealias LazyBuildableProperties = LazyObjectBuilderProperties"),
+            DeclSyntax(propertiesEnum)
+        ]
     }
 }

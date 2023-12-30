@@ -8,5 +8,14 @@
 @attached(member, names: arbitrary)
 public macro ObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type: "ObjectBuilder")
 
+@attached(member, conformances: LazyBuildable)
 @attached(member, names: arbitrary)
 public macro LazyObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type: "LazyObjectBuilder")
+
+public protocol LazyBuildable {
+    associatedtype LazyBuildableProperties: Hashable
+    associatedtype LazyBuildableSelf: LazyBuildable
+
+    static func validate(_ container: [LazyBuildableProperties: Any]) -> Bool
+    static func build(_ container: [LazyBuildableProperties: Any]) -> LazyBuildableSelf
+}

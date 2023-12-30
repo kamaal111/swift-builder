@@ -15,82 +15,53 @@ private let testMacros: [String: Macro.Type] = [
 ]
 
 final class LazyObjectBuilderTests: XCTestCase {
-    func testLazyObjectBuilderMacroFinal() throws {
-//        assertMacroExpansion(
-//            """
-//            @LazyObjectBuilder
-//            class SimpleObject {
-//                var id: UUID?
-//                private(set) var name: String
-//
-//                init(name: String) {
-//                    self.name = name
-//                }
-//            }
-//            """,
-//            expandedSource: """
-//            class SimpleObject {
-//                var id: UUID?
-//                private(set) var name: String
-//
-//                init(name: String) {
-//                    self.name = name
-//                }
-//
-//                enum SimpleObjectProperties {
-//                    case id, name
-//                }
-//
-//                private var container: [SimpleObjectProperties: Any]?
-//
-//                func setId(_ id: UUID?) -> SimpleObject  {
-//                    if container == nil {
-//                        container = [:]
-//                    }
-//                    container[.id] = id
-//                    return self
-//                }
-//
-//                func setName(_ name: String) -> SimpleObject  {
-//                    if container == nil {
-//                        container = [:]
-//                    }
-//                    container[.name] = name
-//                    return self
-//                }
-//            }
-//            """,
-//            macros: testMacros
-//        )
-    }
-
     func testLazyObjectBuilderMacro() {
         assertMacroExpansion(
             """
             @LazyObjectBuilder
-            class SimpleObject {
+            class SimpleObject: LazyBuildable {
                 var id: UUID?
-                private(set) var name: String
+                var name: String?
 
-                init(name: String) {
+                init(id: UUID? = nil, name: String? = nil) {
+                    self.id = id
                     self.name = name
+                }
+
+                static func validate(_ container: [LazyObjectBuilderProperties : Any]) -> Bool {
+                    return false
+                }
+
+                static func build(_ container: [LazyObjectBuilderProperties : Any]) -> SimpleObject {
+                    SimpleObject(id: container[.id] as? UUID, name: container[.name] as? String)
                 }
             }
             """,
             expandedSource: """
-            class SimpleObject {
+            class SimpleObject: LazyBuildable {
                 var id: UUID?
-                private(set) var name: String
+                var name: String?
 
-                init(name: String) {
+                init(id: UUID? = nil, name: String? = nil) {
+                    self.id = id
                     self.name = name
                 }
 
-                enum SimpleObjectProperties {
-                    case id, name
+                static func validate(_ container: [LazyObjectBuilderProperties : Any]) -> Bool {
+                    return false
                 }
 
-                private var _container = [SimpleObjectProperties : Any] ()
+                static func build(_ container: [LazyObjectBuilderProperties : Any]) -> SimpleObject {
+                    SimpleObject(id: container[.id] as? UUID, name: container[.name] as? String)
+                }
+
+                typealias LazyBuildableSelf = SimpleObject
+
+                typealias LazyBuildableProperties = LazyObjectBuilderProperties
+
+                enum LazyObjectBuilderProperties {
+                    case id, name
+                }
             }
             """,
             macros: testMacros

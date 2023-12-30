@@ -22,22 +22,13 @@ struct SyntaxGenerators {
             }
     }
 
-    static func generateLazySetters(
-        _ variableDeclarations: [VariableDeclSyntax],
-        objectName: TokenSyntax
-    ) throws -> [FunctionDeclSyntax] {
-        return []
-    }
-
-    static func generateBuilderContainerProperty(propertyEnumName: TokenSyntax) throws -> VariableDeclSyntax {
-        try VariableDeclSyntax("private var _container = [\(propertyEnumName): Any]()")
-    }
-
-    static func generatePropertiesEnum(propertyNames: [TokenSyntax], objectName: TokenSyntax) throws -> EnumDeclSyntax {
-        let mutableVariableNamesJoinedByCommas = propertyNames.map(\.text).joined(separator: ",")
-        return try EnumDeclSyntax("""
-        enum \(raw: objectName.text)Properties {
-            case \(raw: mutableVariableNamesJoinedByCommas)
+    static func generatePropertiesEnum(
+        _ caseNames: [TokenSyntax],
+        named: String
+    ) throws -> EnumDeclSyntax {
+        try EnumDeclSyntax("""
+        enum \(raw: named) {
+            case \(raw: caseNames.map(\.text).joined(separator: ", "))
         }
         """)
     }

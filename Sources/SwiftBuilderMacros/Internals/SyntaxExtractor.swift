@@ -23,13 +23,10 @@ struct SyntaxExtractor {
         return variableDeclarations
     }
 
-    static func extractVariableNames(_ variableDeclarations: [VariableDeclSyntax]) -> [TokenSyntax] {
-        variableDeclarations
-            .flatMap({ variableDeclaration in
-                variableDeclaration
-                    .bindings
-                    .compactMap({ binding in extractIdentifier(binding) })
-            })
+    static func extractVariableNames(_ variableDeclaration: VariableDeclSyntax) -> [TokenSyntax] {
+        variableDeclaration
+            .bindings
+            .compactMap({ binding in extractIdentifier(binding) })
     }
 
     static func extractIdentifier(_ binding: PatternBindingListSyntax.Element) -> TokenSyntax? {

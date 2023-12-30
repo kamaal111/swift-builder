@@ -20,12 +20,64 @@ class SimpleObject {
 }
 
 @LazyObjectBuilder
-class SimpleLazyObject {
-    private(set) var id: UUID?
-    var name: String
+class SimpleLazyObject: LazyBuildable {
+    var name: String?
 
-    init(name: String) {
+    init(name: String? = nil) {
         self.name = name
+    }
+
+    static func validate(_ container: [LazyObjectBuilderProperties : Any]) -> Bool {
+        return false
+    }
+
+    static func build(_ container: [LazyObjectBuilderProperties : Any]) -> SimpleLazyObject {
+        SimpleLazyObject(name: container[.name] as? String)
+    }
+}
+
+enum LazyBuilderGoalErrors: Error {
+    case ohNo
+}
+
+class LazyBuilderGoal: LazyBuildable {
+    var id: UUID?
+    var name: String?
+
+    init(id: UUID? = nil, name: String? = nil) {
+        self.id = id
+        self.name = name
+    }
+
+    static func validate(_ container: [LazyObjectBuilderProperties : Any]) -> Bool {
+        return false
+    }
+
+    static func build(_ container: [LazyObjectBuilderProperties : Any]) -> LazyBuilderGoal {
+        LazyBuilderGoal(id: container[.id] as? UUID, name: container[.name] as? String)
+    }
+
+    enum LazyObjectBuilderProperties {
+        case id, name
+    }
+
+    class Builder {
+        private var container: [LazyObjectBuilderProperties: Any] = [:]
+
+        func setId(_ id: UUID?) -> Builder {
+            self.container = [.id: id as Any]
+            return self
+        }
+
+        func setName(_ name: String?) -> Builder {
+            self.container = [.name: name as Any]
+            return self
+        }
+
+        func build() throws -> LazyBuilderGoal {
+            guard LazyBuilderGoal.validate(container) else { throw LazyBuilderGoalErrors.ohNo }
+            return LazyBuilderGoal.build(container)
+        }
     }
 }
 
@@ -35,11 +87,10 @@ let object = SimpleObject(name: "Me", protocolUser: SimpleProtocolUser())
     .setName("You")
     .setProtocoluser(OtherSimpleProtocolUser())
 
-let lazilyBuiltObject = SimpleLazyObject(name: "You")
+let lazilyBuiltObject = SimpleLazyObject()
 
 print("object.name ->", object.name)
 print("object.id ->", object.id as Any)
 print("object.protocolUser ->", object.protocolUser)
 
-print("lazilyBuiltObject.name ->", lazilyBuiltObject.name)
-print("lazilyBuiltObject.id ->", lazilyBuiltObject.id as Any)
+print("lazilyBuiltObject ->", lazilyBuiltObject.name as Any)
