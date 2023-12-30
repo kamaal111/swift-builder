@@ -6,6 +6,7 @@
 //
 
 import SwiftSyntax
+import SwiftSyntaxMacros
 
 struct SyntaxExtractor {
     private init() { }
@@ -20,6 +21,15 @@ struct SyntaxExtractor {
         }
 
         return variableDeclarations
+    }
+
+    static func extractVariableNames(_ variableDeclarations: [VariableDeclSyntax]) -> [TokenSyntax] {
+        variableDeclarations
+            .flatMap({ variableDeclaration in
+                variableDeclaration
+                    .bindings
+                    .compactMap({ binding in extractIdentifier(binding) })
+            })
     }
 
     static func extractIdentifier(_ binding: PatternBindingListSyntax.Element) -> TokenSyntax? {

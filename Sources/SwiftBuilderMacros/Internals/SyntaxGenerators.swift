@@ -1,6 +1,6 @@
 //
-//  SyntaxTransformer.swift
-//  
+//  SyntaxGenerators.swift
+//
 //
 //  Created by Kamaal M Farah on 30/12/2023.
 //
@@ -8,21 +8,30 @@
 import SwiftSyntax
 import SwiftSyntaxBuilder
 
-struct SyntaxTransformer {
+struct SyntaxGenerators {
     private init() { }
 
-    static func transformToSetters(
+    static func generateSetters(
         _ variableDeclarations: [VariableDeclSyntax],
         className: TokenSyntax
     ) throws -> [FunctionDeclSyntax] {
         try variableDeclarations
             .flatMap { variableDeclaration in
                 try variableDeclaration.bindings
-                    .compactMap { binding in try transformToSetter(binding, className: className) }
+                    .compactMap { binding in try generateSetter(binding, className: className) }
             }
     }
 
-    private static func transformToSetter(
+    static func generatePropertiesEnum(propertyNames: [TokenSyntax], objectName: TokenSyntax) throws -> EnumDeclSyntax {
+        let mutableVariableNamesJoinedByCommas = propertyNames.map(\.text).joined(separator: ",")
+        return try EnumDeclSyntax("""
+        enum \(raw: objectName.text)Properties {
+            case \(raw: mutableVariableNamesJoinedByCommas)
+        }
+        """)
+    }
+
+    private static func generateSetter(
         _ binding: PatternBindingListSyntax.Element,
         className: TokenSyntax
     ) throws -> FunctionDeclSyntax? {

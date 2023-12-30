@@ -35,7 +35,7 @@ public struct ObjectBuilder: MemberMacro {
 
         guard let objectName, let mutableVariableDeclarations else { throw ObjectBuilderErrors.unsupportedType }
 
-        return try SyntaxTransformer.transformToSetters(mutableVariableDeclarations, className: objectName)
+        return try SyntaxGenerators.generateSetters(mutableVariableDeclarations, className: objectName)
             .map { setter in DeclSyntax(setter) }
     }
 }

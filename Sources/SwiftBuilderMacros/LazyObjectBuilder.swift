@@ -7,7 +7,16 @@
 
 import SwiftSyntax
 import SwiftSyntaxMacros
-import SwiftSyntaxBuilder
+
+enum LazyObjectBuilderErrors: CustomStringConvertible, Error {
+    case unsupportedType
+
+    var description: String {
+        switch self {
+        case .unsupportedType: "@\(String(describing: LazyObjectBuilder.self)) only supports classes"
+        }
+    }
+}
 
 public struct LazyObjectBuilder: MemberMacro {
     public static func expansion(
@@ -15,6 +24,24 @@ public struct LazyObjectBuilder: MemberMacro {
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        return []
+        var objectName: TokenSyntax?
+        var mutableVariableDeclarations: [VariableDeclSyntax]?
+        if let classDecleration = declaration.as(ClassDeclSyntax.self) {
+            objectName = classDecleration.name
+            mutableVariableDeclarations = SyntaxExtractor.extractMutableVariablesDeclarations(classDecleration)
+        }
+
+        guard let objectName, let mutableVariableDeclarations else { throw LazyObjectBuilderErrors.unsupportedType }
+
+        let mutableVariableNames = SyntaxExtractor.extractVariableNames(mutableVariableDeclarations)
+        guard !mutableVariableNames.isEmpty else { return [] }
+
+        let propertiesEnum = try SyntaxGenerators.generatePropertiesEnum(
+            propertyNames: mutableVariableNames,
+            objectName: objectName
+        )
+        return [
+            DeclSyntax(propertiesEnum)
+        ]
     }
 }
