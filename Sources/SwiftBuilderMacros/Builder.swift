@@ -108,9 +108,9 @@ public struct Builder: MemberMacro {
             for setter in setters {
                 setter
             }
-            try FunctionDeclSyntax("\(publicPrefixIfIsPublic)func build() throws -> \(objectName)") {
+            try FunctionDeclSyntax("\(publicPrefixIfIsPublic)func build() -> Result<\(objectName), BuilderErrors>") {
                 try GuardStmtSyntax("guard \(objectName).validate(container) else") {
-                    "throw BuilderErrors.validationError"
+                    "return .failure(.validationError)"
                 }
                 try ForStmtSyntax("for property in BuildableContainerProperties.allCases") {
                     "let value = container[property]"
@@ -119,29 +119,25 @@ public struct Builder: MemberMacro {
                             SwitchCaseSyntax("""
                             case .\(variableName):
                                 \(raw: makeOptionalCheckForBuildValidator(typeAnnotation: typeAnnotations))
-                                if !(value is \(typeAnnotations.name)) {
-                                    throw BuilderErrors.validationError
-                                }
                             """)
                         }
                     }
                 }
-                CodeBlockItemListSyntax("return \(objectName).build(container)")
+                CodeBlockItemListSyntax("return .success(\(objectName).build(container))")
             }
         }
     }
 
-    private static func makeOptionalCheckForBuildValidator(typeAnnotation: TypeAnnotationInfo) -> String {
+    private static func makeOptionalCheckForBuildValidator(
+        typeAnnotation: TypeAnnotationInfo
+    ) -> CodeBlockItemListSyntax {
         if typeAnnotation.isOptional {
-            return """
-            if value == nil {
-                    continue
-            }
-            """
+            return "break"
         }
+
         return """
         if value == nil {
-                throw BuilderErrors.validationError
+                return .failure(.validationError)
         }
         """
     }

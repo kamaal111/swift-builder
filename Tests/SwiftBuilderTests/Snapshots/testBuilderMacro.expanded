@@ -48,44 +48,26 @@ class SimpleObject: Buildable {
             self.container[.numberOfStuff] = numberOfStuff as Any
             return self
         }
-        func build() throws -> SimpleObject {
+        func build() -> Result<SimpleObject, BuilderErrors> {
             guard SimpleObject.validate(container) else {
-                throw BuilderErrors.validationError
+                return .failure(.validationError)
             }
             for property in BuildableContainerProperties.allCases {
                 let value = container[property]
                 switch property {
                 case .id:
-                    if value == nil {
-                        continue
-                    }
-                    if !(value is UUID) {
-                        throw BuilderErrors.validationError
-                    }
+                    break
                 case .name:
-                    if value == nil {
-                        continue
-                    }
-                    if !(value is String) {
-                        throw BuilderErrors.validationError
-                    }
+                    break
                 case .protocolUser:
-                    if value == nil {
-                        continue
-                    }
-                    if !(value is SimpleProtocol) {
-                        throw BuilderErrors.validationError
-                    }
+                    break
                 case .numberOfStuff:
                     if value == nil {
-                        throw BuilderErrors.validationError
-                    }
-                    if !(value is Int) {
-                        throw BuilderErrors.validationError
+                        return .failure(.validationError)
                     }
                 }
             }
-            return SimpleObject.build(container)
+            return .success(SimpleObject.build(container))
         }
     }
 }

@@ -42,6 +42,7 @@ let lazilyBuiltObject = try SimpleLazyObject.Builder()
     .setProtocolUser(OtherSimpleProtocolUser())
     .setNumberOfStuff(2)
     .build()
+    .get()
 
 print("lazilyBuiltObject.name ->", lazilyBuiltObject.name as Any)
 print("lazilyBuiltObject.id ->", lazilyBuiltObject.id as Any)

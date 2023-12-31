@@ -12,7 +12,7 @@ public macro ObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type
 @attached(member, names: arbitrary)
 public macro Builder() = #externalMacro(module: "SwiftBuilderMacros", type: "Builder")
 
-public enum BuilderErrors: Error {
+public enum BuilderErrors: Error, Equatable {
     case validationError
 }
 
