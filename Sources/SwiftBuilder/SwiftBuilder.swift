@@ -23,3 +23,9 @@ public protocol Buildable {
     static func validate(_ container: [BuildableContainerProperties: Any]) -> Bool
     static func build(_ container: [BuildableContainerProperties: Any]) -> BuildableSelf
 }
+
+extension Buildable {
+    public static func validate(_ container: [BuildableContainerProperties: Any]) -> Bool {
+        true
+    }
+}

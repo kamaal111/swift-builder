@@ -14,10 +14,6 @@ class SimpleObject: Buildable {
         self.protocolUser = protocolUser
     }
 
-    static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
-        true
-    }
-
     static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleObject {
         SimpleObject(id: container[.id] as? UUID, name: container[.name] as? String)
     }

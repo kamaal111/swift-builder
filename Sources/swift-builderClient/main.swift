@@ -21,11 +21,7 @@ public class SimpleLazyObject: Buildable {
         self.protocolUser = protocolUser
     }
 
-    public static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
-        true
-    }
-
-    public static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleLazyObject {
+    public static func build(_ container: [BuildableProperties : Any]) -> SimpleLazyObject {
         SimpleLazyObject(
             numberOfStuff: container[.numberOfStuff] as! Int,
             name: container[.name] as? String,
