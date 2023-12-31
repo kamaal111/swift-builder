@@ -25,6 +25,16 @@ final class BuilderSnapshotTests: XCTestCase {
         )
     }
 
+    func testBuilderMacroForPublicClass() throws {
+        let snapshotName = try XCTUnwrap(#function.split(separator: "()").first)
+        let snapshotNameString = String(snapshotName)
+        assertMacroExpansion(
+            try getSnapshot(named: snapshotNameString, ofType: .source),
+            expandedSource: try getSnapshot(named: snapshotNameString, ofType: .expanded),
+            macros: testMacros
+        )
+    }
+
     private func getSnapshot(named name: String, ofType type: SnapshotTypes) throws -> String {
         let path = try XCTUnwrap(Bundle.module.path(forResource: name, ofType: type.rawValue))
         let url = URL(fileURLWithPath: path)

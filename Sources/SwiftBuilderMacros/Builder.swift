@@ -7,6 +7,7 @@
 
 import SwiftSyntax
 import SwiftSyntaxMacros
+import SwiftSyntaxBuilder
 
 enum BuilderErrors: CustomStringConvertible, Error {
     case unsupportedType
@@ -32,8 +33,12 @@ public struct Builder: MemberMacro {
     ) throws -> [DeclSyntax] {
         var objectName: TokenSyntax?
         var variableDeclarations: [VariableDeclSyntax]?
+        var isPublic = false
         if let classDecleration = declaration.as(ClassDeclSyntax.self) {
             objectName = classDecleration.name
+            let publicModifier = classDecleration.modifiers
+                .first(where: { modifier in modifier.name.text == "public" })
+            isPublic = publicModifier != nil
             variableDeclarations = SyntaxExtractor.extractVariableDeclarations(classDecleration)
         }
 
@@ -46,13 +51,21 @@ public struct Builder: MemberMacro {
             .flatMap({ variableDeclaration in SyntaxExtractor.extractVariableNames(variableDeclaration) })
         let propertiesEnum = try SyntaxGenerators.generatePropertiesEnum(
             variableNames,
-            named: PROPERTIES_ENUM_NAME
+            named: PROPERTIES_ENUM_NAME,
+            isPublic: isPublic
         )
-        let lazyBuildSelfTypeAlias = try TypeAliasDeclSyntax("typealias BuildableSelf = \(objectName)")
+        let typealiasPrefix: SyntaxNodeString = if isPublic { "public " } else { "" }
+        let lazyBuildSelfTypeAlias = try TypeAliasDeclSyntax(
+            "\(typealiasPrefix)typealias BuildableSelf = \(objectName)"
+        )
         let lazyBuildablePropertiesTypeAlias = try TypeAliasDeclSyntax(
-            "typealias BuildableContainerProperties = \(PROPERTIES_ENUM_NAME)"
+            "\(typealiasPrefix)typealias BuildableContainerProperties = \(PROPERTIES_ENUM_NAME)"
         )
-        let builderClass = try makeBuilderClass(variableDeclarations: variableDeclarations, objectName: objectName)
+        let builderClass = try makeBuilderClass(
+            variableDeclarations: variableDeclarations,
+            objectName: objectName,
+            isPublic: isPublic
+        )
 
         return [
             DeclSyntax(lazyBuildSelfTypeAlias),
@@ -64,19 +77,23 @@ public struct Builder: MemberMacro {
 
     private static func makeBuilderClass(
         variableDeclarations: [VariableDeclSyntax],
-        objectName: TokenSyntax
+        objectName: TokenSyntax,
+        isPublic: Bool
     ) throws -> ClassDeclSyntax{
         let setters = try SyntaxGenerators.generateSetters(
             variableDeclarations,
             builderName: BUILDER_NAME,
-            containerPropertyName: BUILDER_CONTAINER_NAME
+            containerPropertyName: BUILDER_CONTAINER_NAME,
+            isPublic: isPublic
         )
-        return try ClassDeclSyntax("class \(BUILDER_NAME)") {
+        let publicPrefixIfIsPublic: SyntaxNodeString = if isPublic { "public " } else { "" }
+        return try ClassDeclSyntax("\(publicPrefixIfIsPublic)class \(BUILDER_NAME)") {
             try VariableDeclSyntax("private var \(BUILDER_CONTAINER_NAME) = [\(PROPERTIES_ENUM_NAME): Any]()")
+            try InitializerDeclSyntax("\(publicPrefixIfIsPublic)init()") { }
             for setter in setters {
                 setter
             }
-            try FunctionDeclSyntax("func build() throws -> \(objectName)") {
+            try FunctionDeclSyntax("\(publicPrefixIfIsPublic)func build() throws -> \(objectName)") {
                 try GuardStmtSyntax("guard \(objectName).validate(container) else") {
                     "throw BuilderErrors.validationError"
                 }

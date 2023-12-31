@@ -1,25 +1,25 @@
 import Foundation
 import SwiftBuilder
 
-protocol SimpleProtocol { }
+public protocol SimpleProtocol { }
 
 struct SimpleProtocolUser: SimpleProtocol { }
 
 struct OtherSimpleProtocolUser: SimpleProtocol { }
 
 @Builder
-class SimpleLazyObject: Buildable {
+public class SimpleLazyObject: Buildable {
     var name: String?
     var id: UUID?
     var protocolUser: (any SimpleProtocol)?
 
-    init(name: String? = nil, id: UUID? = nil, protocolUser: SimpleProtocol? = nil) {
+    public init(name: String? = nil, id: UUID? = nil, protocolUser: SimpleProtocol? = nil) {
         self.name = name
         self.id = id
         self.protocolUser = protocolUser
     }
 
-    static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
+    public static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
         for (key, value) in container {
             switch key {
             case .id:
@@ -39,7 +39,7 @@ class SimpleLazyObject: Buildable {
         return true
     }
 
-    static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleLazyObject {
+    public static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleLazyObject {
         SimpleLazyObject(name: container[.name] as? String, id: container[.id] as? UUID)
     }
 }
