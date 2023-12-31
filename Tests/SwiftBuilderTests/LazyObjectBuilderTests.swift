@@ -11,15 +11,15 @@ import SwiftBuilderMacros
 import SwiftSyntaxMacrosTestSupport
 
 private let testMacros: [String: Macro.Type] = [
-    "LazyObjectBuilder": LazyObjectBuilder.self,
+    "Builder": Builder.self,
 ]
 
 final class LazyObjectBuilderTests: XCTestCase {
     func testLazyObjectBuilderMacro() {
         assertMacroExpansion(
             """
-            @LazyObjectBuilder
-            class SimpleObject: LazyBuildable {
+            @Builder
+            class SimpleObject: Buildable {
                 var id: UUID?
                 var name: String?
 
@@ -28,17 +28,17 @@ final class LazyObjectBuilderTests: XCTestCase {
                     self.name = name
                 }
 
-                static func validate(_ container: [LazyObjectBuilderProperties : Any]) -> Bool {
+                static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
                     return false
                 }
 
-                static func build(_ container: [LazyObjectBuilderProperties : Any]) -> SimpleObject {
+                static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleObject {
                     SimpleObject(id: container[.id] as? UUID, name: container[.name] as? String)
                 }
             }
             """,
             expandedSource: """
-            class SimpleObject: LazyBuildable {
+            class SimpleObject: Buildable {
                 var id: UUID?
                 var name: String?
 
@@ -47,25 +47,25 @@ final class LazyObjectBuilderTests: XCTestCase {
                     self.name = name
                 }
 
-                static func validate(_ container: [LazyObjectBuilderProperties : Any]) -> Bool {
+                static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
                     return false
                 }
 
-                static func build(_ container: [LazyObjectBuilderProperties : Any]) -> SimpleObject {
+                static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleObject {
                     SimpleObject(id: container[.id] as? UUID, name: container[.name] as? String)
                 }
 
-                typealias LazyBuildableSelf = SimpleObject
+                typealias BuildableSelf = SimpleObject
 
-                typealias LazyBuildableProperties = LazyObjectBuilderProperties
+                typealias BuildableContainerProperties = BuildableProperties
 
-                enum LazyObjectBuilderProperties {
+                enum BuildableProperties {
                     case id
                     case name
                 }
 
                 class Builder {
-                    private var container = [LazyObjectBuilderProperties: Any] ()
+                    private var container = [BuildableProperties: Any] ()
                     func setId(_ id: UUID?) -> Builder {
                         self.container[.id] = id as Any
                         return self
@@ -76,7 +76,7 @@ final class LazyObjectBuilderTests: XCTestCase {
                     }
                     func build() throws -> SimpleObject {
                         guard SimpleObject.validate(container) else {
-                            throw LazyObjectBuilderErrors.validationError
+                            throw BuilderErrors.validationError
                         }
                         return SimpleObject.build(container)
                     }

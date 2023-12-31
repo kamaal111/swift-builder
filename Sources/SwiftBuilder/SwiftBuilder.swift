@@ -8,18 +8,18 @@
 @attached(member, names: arbitrary)
 public macro ObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type: "ObjectBuilder")
 
-@attached(member, conformances: LazyBuildable)
+@attached(member, conformances: Buildable)
 @attached(member, names: arbitrary)
-public macro LazyObjectBuilder() = #externalMacro(module: "SwiftBuilderMacros", type: "LazyObjectBuilder")
+public macro Builder() = #externalMacro(module: "SwiftBuilderMacros", type: "Builder")
 
-public enum LazyObjectBuilderErrors: Error {
+public enum BuilderErrors: Error {
     case validationError
 }
 
-public protocol LazyBuildable {
-    associatedtype LazyBuildableProperties: Hashable
-    associatedtype LazyBuildableSelf: LazyBuildable
+public protocol Buildable {
+    associatedtype BuildableContainerProperties: Hashable
+    associatedtype BuildableSelf: Buildable
 
-    static func validate(_ container: [LazyBuildableProperties: Any]) -> Bool
-    static func build(_ container: [LazyBuildableProperties: Any]) -> LazyBuildableSelf
+    static func validate(_ container: [BuildableContainerProperties: Any]) -> Bool
+    static func build(_ container: [BuildableContainerProperties: Any]) -> BuildableSelf
 }

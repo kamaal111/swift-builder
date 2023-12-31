@@ -11,7 +11,6 @@ import SwiftCompilerPlugin
 @main
 struct SwiftBuilderPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        ObjectBuilder.self,
-        LazyObjectBuilder.self
+        Builder.self
     ]
 }

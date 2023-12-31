@@ -1,5 +1,5 @@
 //
-//  LazyObjectBuilder.swift
+//  Builder.swift
 //
 //
 //  Created by Kamaal M Farah on 28/12/2023.
@@ -8,23 +8,23 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-enum LazyObjectBuilderErrors: CustomStringConvertible, Error {
+enum BuilderErrors: CustomStringConvertible, Error {
     case unsupportedType
     case insufficientProperties
 
     var description: String {
         switch self {
-        case .unsupportedType: "@\(String(describing: LazyObjectBuilder.self)) only supports classes"
+        case .unsupportedType: "@\(String(describing: Builder.self)) only supports classes"
         case .insufficientProperties: "Must have atleast mutable 1 property"
         }
     }
 }
 
-private let PROPERTIES_ENUM_NAME = TokenSyntax("LazyObjectBuilderProperties")
+private let PROPERTIES_ENUM_NAME = TokenSyntax("BuildableProperties")
 private let BUILDER_NAME = TokenSyntax("Builder")
 private let BUILDER_CONTAINER_NAME = TokenSyntax("container")
 
-public struct LazyObjectBuilder: MemberMacro {
+public struct Builder: MemberMacro {
     public static func expansion(
         of attribute: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
@@ -37,8 +37,10 @@ public struct LazyObjectBuilder: MemberMacro {
             mutableVariableDeclarations = SyntaxExtractor.extractMutableVariablesDeclarations(classDecleration)
         }
 
-        guard let mutableVariableDeclarations, let objectName else { throw LazyObjectBuilderErrors.unsupportedType }
-        guard !mutableVariableDeclarations.isEmpty else { throw LazyObjectBuilderErrors.insufficientProperties }
+        // TODO: Support struct as well
+
+        guard let mutableVariableDeclarations, let objectName else { throw BuilderErrors.unsupportedType }
+        guard !mutableVariableDeclarations.isEmpty else { throw BuilderErrors.insufficientProperties }
 
         let variableNames = mutableVariableDeclarations
             .flatMap({ variableDeclaration in SyntaxExtractor.extractVariableNames(variableDeclaration) })
@@ -47,11 +49,11 @@ public struct LazyObjectBuilder: MemberMacro {
             named: PROPERTIES_ENUM_NAME
         )
         let lazyBuildSelfTypeAlias = try SyntaxGenerators.generateTypeAlias(
-            name: "LazyBuildableSelf",
+            name: "BuildableSelf",
             value: objectName
         )
         let lazyBuildablePropertiesTypeAlias = try SyntaxGenerators.generateTypeAlias(
-            name: "LazyBuildableProperties",
+            name: "BuildableContainerProperties",
             value: PROPERTIES_ENUM_NAME
         )
         let setters = try SyntaxGenerators.generateDynamicSetters(
@@ -69,7 +71,7 @@ public struct LazyObjectBuilder: MemberMacro {
             }
             try FunctionDeclSyntax("func build() throws -> \(objectName)") {
                 CodeBlockItemListSyntax("""
-                guard \(objectName).validate(container) else { throw LazyObjectBuilderErrors.validationError }
+                guard \(objectName).validate(container) else { throw BuilderErrors.validationError }
                 return \(objectName).build(container)
                 """)
             }

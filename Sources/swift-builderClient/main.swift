@@ -7,32 +7,39 @@ struct SimpleProtocolUser: SimpleProtocol { }
 
 struct OtherSimpleProtocolUser: SimpleProtocol { }
 
-@ObjectBuilder
-class SimpleObject {
-    private(set) var id: UUID?
-    private(set) var name: String
-    var protocolUser: any SimpleProtocol
-
-    init(name: String, protocolUser: some SimpleProtocol) {
-        self.name = name
-        self.protocolUser = protocolUser
-    }
-}
-
-@LazyObjectBuilder
-class SimpleLazyObject: LazyBuildable {
+@Builder
+class SimpleLazyObject: Buildable {
     var name: String?
     var id: UUID?
+    var protocolUser: SimpleProtocol?
 
-    init(name: String? = nil, id: UUID? = nil) {
+    init(name: String? = nil, id: UUID? = nil, protocolUser: SimpleProtocol? = nil) {
         self.name = name
+        self.id = id
+        self.protocolUser = protocolUser
     }
 
-    static func validate(_ container: [LazyObjectBuilderProperties : Any]) -> Bool {
-        return false
+    static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
+        for (key, value) in container {
+            switch key {
+            case .id:
+                if !(value is UUID) {
+                    return false
+                }
+            case .name:
+                if !(value is String) {
+                    return false
+                }
+            case .protocolUser:
+                if !(value is SimpleProtocol) {
+                    return false
+                }
+            }
+        }
+        return true
     }
 
-    static func build(_ container: [LazyObjectBuilderProperties : Any]) -> SimpleLazyObject {
+    static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleLazyObject {
         SimpleLazyObject(name: container[.name] as? String, id: container[.id] as? UUID)
     }
 }
@@ -42,15 +49,10 @@ enum LazyBuilderGoalErrors: Error {
 }
 
 let id = UUID(uuidString: "BE583F78-E47F-4F86-AC67-B6161D8665BB")
-let object = SimpleObject(name: "Me", protocolUser: SimpleProtocolUser())
+let lazilyBuiltObject = try SimpleLazyObject.Builder()
     .setId(id)
-    .setName("You")
-    .setProtocoluser(OtherSimpleProtocolUser())
+    .setName("Kamaal")
+    .build()
 
-let lazilyBuiltObject = SimpleLazyObject()
-
-print("object.name ->", object.name)
-print("object.id ->", object.id as Any)
-print("object.protocolUser ->", object.protocolUser)
-
-print("lazilyBuiltObject ->", lazilyBuiltObject.name as Any)
+print("lazilyBuiltObject.name ->", lazilyBuiltObject.name as Any)
+print("lazilyBuiltObject.id ->", lazilyBuiltObject.id as Any)
