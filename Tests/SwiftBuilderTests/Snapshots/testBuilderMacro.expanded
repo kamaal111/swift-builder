@@ -56,21 +56,34 @@ class SimpleObject: Buildable {
             guard SimpleObject.validate(container) else {
                 throw BuilderErrors.validationError
             }
-            for (key, value) in container {
-                switch key {
+            for property in BuildableContainerProperties.allCases {
+                let value = container[property]
+                switch property {
                 case .id:
+                    if value == nil {
+                        continue
+                    }
                     if !(value is UUID) {
                         throw BuilderErrors.validationError
                     }
                 case .name:
+                    if value == nil {
+                        continue
+                    }
                     if !(value is String) {
                         throw BuilderErrors.validationError
                     }
                 case .protocolUser:
+                    if value == nil {
+                        continue
+                    }
                     if !(value is SimpleProtocol) {
                         throw BuilderErrors.validationError
                     }
                 case .numberOfStuff:
+                    if value == nil {
+                        throw BuilderErrors.validationError
+                    }
                     if !(value is Int) {
                         throw BuilderErrors.validationError
                     }

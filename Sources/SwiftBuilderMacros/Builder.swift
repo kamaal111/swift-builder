@@ -99,11 +99,13 @@ public struct Builder: MemberMacro {
                 try GuardStmtSyntax("guard \(objectName).validate(container) else") {
                     "throw BuilderErrors.validationError"
                 }
-                try ForStmtSyntax("for (key, value) in container") {
-                    try SwitchExprSyntax("switch key") {
+                try ForStmtSyntax("for property in BuildableContainerProperties.allCases") {
+                    "let value = container[property]"
+                    try SwitchExprSyntax("switch property") {
                         for (variableName, typeAnnotations) in variableNamesAndTypeAnnotations {
                             SwitchCaseSyntax("""
                             case .\(variableName):
+                                \(raw: makeOptionalCheckForBuildValidator(typeAnnotation: typeAnnotations))
                                 if !(value is \(typeAnnotations.name)) {
                                     throw BuilderErrors.validationError
                                 }
@@ -114,5 +116,20 @@ public struct Builder: MemberMacro {
                 CodeBlockItemListSyntax("return \(objectName).build(container)")
             }
         }
+    }
+
+    private static func makeOptionalCheckForBuildValidator(typeAnnotation: TypeAnnotationInfo) -> String {
+        if typeAnnotation.isOptional {
+            return """
+            if value == nil {
+                    continue
+            }
+            """
+        }
+        return """
+        if value == nil {
+                throw BuilderErrors.validationError
+        }
+        """
     }
 }

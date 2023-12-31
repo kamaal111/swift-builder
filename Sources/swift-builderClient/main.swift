@@ -12,8 +12,10 @@ public class SimpleLazyObject: Buildable {
     var name: String?
     var id: UUID?
     var protocolUser: (any SimpleProtocol)?
+    let numberOfStuff: Int
 
-    public init(name: String? = nil, id: UUID? = nil, protocolUser: SimpleProtocol? = nil) {
+    public init(numberOfStuff: Int, name: String? = nil, id: UUID? = nil, protocolUser: SimpleProtocol? = nil) {
+        self.numberOfStuff = numberOfStuff
         self.name = name
         self.id = id
         self.protocolUser = protocolUser
@@ -25,6 +27,7 @@ public class SimpleLazyObject: Buildable {
 
     public static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleLazyObject {
         SimpleLazyObject(
+            numberOfStuff: container[.numberOfStuff] as! Int,
             name: container[.name] as? String,
             id: container[.id] as? UUID,
             protocolUser: container[.protocolUser] as? SimpleProtocol
@@ -41,8 +44,10 @@ let lazilyBuiltObject = try SimpleLazyObject.Builder()
     .setId(id)
     .setName("Kamaal")
     .setProtocolUser(OtherSimpleProtocolUser())
+    .setNumberOfStuff(2)
     .build()
 
 print("lazilyBuiltObject.name ->", lazilyBuiltObject.name as Any)
 print("lazilyBuiltObject.id ->", lazilyBuiltObject.id as Any)
 print("lazilyBuiltObject.protocolUser ->", lazilyBuiltObject.protocolUser as Any)
+print("lazilyBuiltObject.numberOfStuff ->", lazilyBuiltObject.numberOfStuff)
