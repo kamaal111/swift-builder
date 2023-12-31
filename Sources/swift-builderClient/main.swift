@@ -11,7 +11,7 @@ struct OtherSimpleProtocolUser: SimpleProtocol { }
 class SimpleLazyObject: Buildable {
     var name: String?
     var id: UUID?
-    var protocolUser: SimpleProtocol?
+    var protocolUser: (any SimpleProtocol)?
 
     init(name: String? = nil, id: UUID? = nil, protocolUser: SimpleProtocol? = nil) {
         self.name = name
@@ -52,7 +52,9 @@ let id = UUID(uuidString: "BE583F78-E47F-4F86-AC67-B6161D8665BB")
 let lazilyBuiltObject = try SimpleLazyObject.Builder()
     .setId(id)
     .setName("Kamaal")
+    .setProtocoluser(OtherSimpleProtocolUser())
     .build()
 
 print("lazilyBuiltObject.name ->", lazilyBuiltObject.name as Any)
 print("lazilyBuiltObject.id ->", lazilyBuiltObject.id as Any)
+print("lazilyBuiltObject.protocolUser ->", lazilyBuiltObject.protocolUser as Any)

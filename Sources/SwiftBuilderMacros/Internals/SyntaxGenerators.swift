@@ -11,26 +11,12 @@ import SwiftSyntaxBuilder
 struct SyntaxGenerators {
     private init() { }
 
-    static func generateDirectSetters(
-        _ variableDeclarations: [VariableDeclSyntax],
-        objectName: TokenSyntax
-    ) throws -> [FunctionDeclSyntax] {
-        try generateSetters(variableDeclarations) { binding in
-            try generateSetter(binding, returnType: objectName) { identifier in
-                """
-                self.\(identifier) = \(identifier)
-                return self
-                """
-            }
-        }
-    }
-
     static func generateDynamicSetters(
         _ variableDeclarations: [VariableDeclSyntax],
         builderName: TokenSyntax,
         containerPropertyName: TokenSyntax
     ) throws -> [FunctionDeclSyntax] {
-        try generateSetters(variableDeclarations) { binding in
+        try mapBindingsToFunctions(variableDeclarations) { binding in
             try generateSetter(binding, returnType: builderName) { identifier in
                 """
                 self.\(containerPropertyName)[.\(identifier)] = \(identifier) as Any
@@ -75,16 +61,16 @@ struct SyntaxGenerators {
         })
     }
 
-    private static func generateSetters(
+    private static func mapBindingsToFunctions(
         _ variableDeclarations: [VariableDeclSyntax],
-        body: (PatternBindingListSyntax.Element) throws -> FunctionDeclSyntax?
+        transformer: (PatternBindingListSyntax.Element) throws -> FunctionDeclSyntax?
     ) throws -> [FunctionDeclSyntax] {
         try variableDeclarations
             .flatMap({ variableDeclaration in
                 try variableDeclaration
                     .bindings
                     .compactMap({ binding in
-                        try body(binding)
+                        try transformer(binding)
                     })
             })
     }

@@ -18,18 +18,22 @@ final class LazyObjectBuilderTests: XCTestCase {
     func testLazyObjectBuilderMacro() {
         assertMacroExpansion(
             """
+            protocol SimpleProtocol { }
+            struct SimpleProtocolUser: SimpleProtocol { }
             @Builder
             class SimpleObject: Buildable {
                 var id: UUID?
                 var name: String?
+                var protocolUser: (any SimpleProtocol)?
 
-                init(id: UUID? = nil, name: String? = nil) {
+                init(id: UUID? = nil, name: String? = nil, protocolUser: SimpleProtocol?) {
                     self.id = id
                     self.name = name
+                    self.protocolUser = protocolUser
                 }
 
                 static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
-                    return false
+                    true
                 }
 
                 static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleObject {
@@ -38,17 +42,21 @@ final class LazyObjectBuilderTests: XCTestCase {
             }
             """,
             expandedSource: """
+            protocol SimpleProtocol { }
+            struct SimpleProtocolUser: SimpleProtocol { }
             class SimpleObject: Buildable {
                 var id: UUID?
                 var name: String?
+                var protocolUser: (any SimpleProtocol)?
 
-                init(id: UUID? = nil, name: String? = nil) {
+                init(id: UUID? = nil, name: String? = nil, protocolUser: SimpleProtocol?) {
                     self.id = id
                     self.name = name
+                    self.protocolUser = protocolUser
                 }
 
                 static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
-                    return false
+                    true
                 }
 
                 static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleObject {
@@ -62,6 +70,7 @@ final class LazyObjectBuilderTests: XCTestCase {
                 enum BuildableProperties {
                     case id
                     case name
+                    case protocolUser
                 }
 
                 class Builder {
@@ -72,6 +81,10 @@ final class LazyObjectBuilderTests: XCTestCase {
                     }
                     func setName(_ name: String?) -> Builder {
                         self.container[.name] = name as Any
+                        return self
+                    }
+                    func setProtocoluser(_ protocolUser: (any SimpleProtocol)?) -> Builder {
+                        self.container[.protocolUser] = protocolUser as Any
                         return self
                     }
                     func build() throws -> SimpleObject {

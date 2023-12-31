@@ -31,18 +31,18 @@ public struct Builder: MemberMacro {
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         var objectName: TokenSyntax?
-        var mutableVariableDeclarations: [VariableDeclSyntax]?
+        var variableDeclarations: [VariableDeclSyntax]?
         if let classDecleration = declaration.as(ClassDeclSyntax.self) {
             objectName = classDecleration.name
-            mutableVariableDeclarations = SyntaxExtractor.extractMutableVariablesDeclarations(classDecleration)
+            variableDeclarations = SyntaxExtractor.extractVariableDeclarations(classDecleration)
         }
 
         // TODO: Support struct as well
 
-        guard let mutableVariableDeclarations, let objectName else { throw BuilderErrors.unsupportedType }
-        guard !mutableVariableDeclarations.isEmpty else { throw BuilderErrors.insufficientProperties }
+        guard let variableDeclarations, let objectName else { throw BuilderErrors.unsupportedType }
+        guard !variableDeclarations.isEmpty else { throw BuilderErrors.insufficientProperties }
 
-        let variableNames = mutableVariableDeclarations
+        let variableNames = variableDeclarations
             .flatMap({ variableDeclaration in SyntaxExtractor.extractVariableNames(variableDeclaration) })
         let propertiesEnum = try SyntaxGenerators.generatePropertiesEnum(
             variableNames,
@@ -57,7 +57,7 @@ public struct Builder: MemberMacro {
             value: PROPERTIES_ENUM_NAME
         )
         let setters = try SyntaxGenerators.generateDynamicSetters(
-            mutableVariableDeclarations,
+            variableDeclarations,
             builderName: BUILDER_NAME,
             containerPropertyName: BUILDER_CONTAINER_NAME
         )
@@ -70,10 +70,10 @@ public struct Builder: MemberMacro {
                 setter
             }
             try FunctionDeclSyntax("func build() throws -> \(objectName)") {
-                CodeBlockItemListSyntax("""
-                guard \(objectName).validate(container) else { throw BuilderErrors.validationError }
-                return \(objectName).build(container)
-                """)
+                try GuardStmtSyntax("guard \(objectName).validate(container) else") {
+                    "throw BuilderErrors.validationError"
+                }
+                CodeBlockItemListSyntax("return \(objectName).build(container)")
             }
         }
 

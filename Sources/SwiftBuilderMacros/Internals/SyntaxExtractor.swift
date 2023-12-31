@@ -11,11 +11,10 @@ import SwiftSyntaxMacros
 struct SyntaxExtractor {
     private init() { }
 
-    static func extractMutableVariablesDeclarations(_ classDecleration: ClassDeclSyntax) -> [VariableDeclSyntax] {
+    static func extractVariableDeclarations(_ classDecleration: ClassDeclSyntax) -> [VariableDeclSyntax] {
         var variableDeclarations = [VariableDeclSyntax]()
         for member in classDecleration.memberBlock.members {
             guard let variableDeclaration = member.decl.as(VariableDeclSyntax.self) else { continue }
-            guard variableDeclaration.bindingSpecifier.text == "var" else { continue }
 
             variableDeclarations.append(variableDeclaration)
         }
@@ -36,9 +35,13 @@ struct SyntaxExtractor {
     static func extractTypeAnnotation(_ binding: PatternBindingListSyntax.Element) -> TokenSyntax? {
         guard let typeAnnotation = binding.typeAnnotation?.type else { return nil }
 
-        if let optionalTypeAnnotation = typeAnnotation.as(OptionalTypeSyntax.self),
-           let wrappedType = optionalTypeAnnotation.wrappedType.as(IdentifierTypeSyntax.self) {
-            return "\(wrappedType.name)?"
+        if let optionalTypeAnnotation = typeAnnotation.as(OptionalTypeSyntax.self) {
+            if let wrappedType = optionalTypeAnnotation.wrappedType.as(IdentifierTypeSyntax.self) {
+                return "\(wrappedType.name)?"
+            }
+            if let wrappedType = optionalTypeAnnotation.wrappedType.as(TupleTypeSyntax.self) {
+                return "\(wrappedType)?"
+            }
         }
 
         if let typeAnnotation = typeAnnotation.as(IdentifierTypeSyntax.self) {
