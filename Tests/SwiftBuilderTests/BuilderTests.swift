@@ -54,6 +54,25 @@ final class BuilderTests: XCTestCase {
             .get()
         XCTAssertNil(object.name)
     }
+
+    func testBuilderWithStruct() throws {
+        let expectedAge = 22
+        let object = try TestStructObject
+            .Builder()
+            .setAge(expectedAge)
+            .build()
+            .get()
+        XCTAssertEqual(object.age, expectedAge)
+    }
+}
+
+@Builder
+private struct TestStructObject: Buildable {
+    var age: Int
+
+    static func build(_ container: [BuildableContainerProperties : Any]) -> TestStructObject {
+        TestStructObject(age: container[.age] as! Int)
+    }
 }
 
 @Builder

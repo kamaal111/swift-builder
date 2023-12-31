@@ -41,7 +41,7 @@ final class BuilderSnapshotTests: XCTestCase {
         assertMacroExpansion(
             try getSnapshot(named: snapshotNameString, ofType: .source),
             expandedSource: try getSnapshot(named: snapshotNameString, ofType: .expanded),
-            diagnostics: [.init(message: "@Builder only supports classes", line: 1, column: 1)],
+            diagnostics: [.init(message: "Object must be either a class or a struct", line: 1, column: 1)],
             macros: testMacros
         )
     }
@@ -64,6 +64,16 @@ final class BuilderSnapshotTests: XCTestCase {
             try getSnapshot(named: snapshotNameString, ofType: .source),
             expandedSource: try getSnapshot(named: snapshotNameString, ofType: .expanded),
             diagnostics: [.init(message: "Object must conform to `Buildable` protocol", line: 1, column: 1)],
+            macros: testMacros
+        )
+    }
+
+    func testBuilderMacroWithStruct() throws {
+        let snapshotName = try XCTUnwrap(#function.split(separator: "()").first)
+        let snapshotNameString = String(snapshotName)
+        assertMacroExpansion(
+            try getSnapshot(named: snapshotNameString, ofType: .source),
+            expandedSource: try getSnapshot(named: snapshotNameString, ofType: .expanded),
             macros: testMacros
         )
     }

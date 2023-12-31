@@ -1,0 +1,39 @@
+struct SimpleObject: Buildable {
+    let age: Int
+
+    static func build(_ container: [BuildableContainerProperties : Any]) -> TestStructObject {
+        TestStructObject(age: container[.age] as! Int)
+    }
+
+    typealias BuildableSelf = SimpleObject
+
+    typealias BuildableContainerProperties = BuildableProperties
+
+    enum BuildableProperties: CaseIterable {
+        case age
+    }
+
+    class Builder {
+        private var container = [BuildableProperties: Any] ()
+        init() {
+        }
+        func setAge(_ age: Int) -> Builder {
+            self.container[.age] = age as Any
+            return self
+        }
+        func build() -> Result<SimpleObject, BuilderErrors> {
+            guard SimpleObject.validate(container) else {
+                return .failure(.validationError)
+            }
+            for property in BuildableContainerProperties.allCases {
+                switch property {
+                case .age:
+                    if container[property] == nil {
+                        return .failure(.validationError)
+                    }
+                }
+            }
+            return .success(SimpleObject.build(container))
+        }
+    }
+}

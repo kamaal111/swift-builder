@@ -16,7 +16,7 @@ enum BuilderErrors: CustomStringConvertible, Error {
 
     var description: String {
         switch self {
-        case .unsupportedType: "@\(String(describing: Builder.self)) only supports classes"
+        case .unsupportedType: "Object must be either a class or a struct"
         case .insufficientProperties: "Object must have atleast 1 property"
         case .invalidType: "Object must conform to `Buildable` protocol"
         }
@@ -34,9 +34,11 @@ public struct Builder: MemberMacro {
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         var objectName: TokenSyntax?
-        // TODO: Support struct as well
         if let classDecleration = declaration.as(ClassDeclSyntax.self) {
             objectName = classDecleration.name
+        }
+        if let structDecleration = declaration.as(StructDeclSyntax.self) {
+            objectName = structDecleration.name
         }
         guard let objectName else { throw BuilderErrors.unsupportedType }
 
@@ -113,7 +115,6 @@ public struct Builder: MemberMacro {
                     "return .failure(.validationError)"
                 }
                 try ForStmtSyntax("for property in BuildableContainerProperties.allCases") {
-                    "let value = container[property]"
                     try SwitchExprSyntax("switch property") {
                         for (variableName, typeAnnotations) in variableNamesAndTypeAnnotations {
                             SwitchCaseSyntax("""
@@ -136,7 +137,7 @@ public struct Builder: MemberMacro {
         }
 
         return """
-        if value == nil {
+        if container[property] == nil {
                 return .failure(.validationError)
         }
         """
