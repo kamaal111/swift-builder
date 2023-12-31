@@ -77,7 +77,7 @@ public struct Builder: MemberMacro {
         variableDeclarations: [VariableDeclSyntax],
         objectName: TokenSyntax,
         isPublic: Bool
-    ) throws -> ClassDeclSyntax{
+    ) throws -> ClassDeclSyntax {
         let setters = try SyntaxGenerators.generateSetters(
             variableDeclarations,
             builderName: BUILDER_NAME,
@@ -104,7 +104,7 @@ public struct Builder: MemberMacro {
                         for (variableName, typeAnnotations) in variableNamesAndTypeAnnotations {
                             SwitchCaseSyntax("""
                             case .\(variableName):
-                                if !(value is \(typeAnnotations)) {
+                                if !(value is \(typeAnnotations.name)) {
                                     throw BuilderErrors.validationError
                                 }
                             """)

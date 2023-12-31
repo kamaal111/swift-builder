@@ -17,7 +17,7 @@ public enum BuilderErrors: Error {
 }
 
 public protocol Buildable {
-    associatedtype BuildableContainerProperties: Hashable
+    associatedtype BuildableContainerProperties: Hashable & CaseIterable
     associatedtype BuildableSelf: Buildable
 
     static func validate(_ container: [BuildableContainerProperties: Any]) -> Bool

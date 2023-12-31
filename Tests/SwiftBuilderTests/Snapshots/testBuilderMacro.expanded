@@ -25,7 +25,7 @@ class SimpleObject: Buildable {
 
     typealias BuildableContainerProperties = BuildableProperties
 
-    enum BuildableProperties {
+    enum BuildableProperties: CaseIterable {
         case id
         case name
         case protocolUser

@@ -32,8 +32,8 @@ struct SyntaxGenerators {
         named: TokenSyntax,
         isPublic: Bool
     ) throws -> EnumDeclSyntax {
-        let header: SyntaxNodeString = if isPublic { "public enum \(named)" } else { "enum \(named)" }
-        return try EnumDeclSyntax(header) {
+        let publicPrefixIfIsPublic: SyntaxNodeString = if isPublic { "public " } else { "" }
+        return try EnumDeclSyntax("\(publicPrefixIfIsPublic)enum \(named): CaseIterable") {
             for name in caseNames {
                 try EnumCaseDeclSyntax("case \(name)")
             }
@@ -51,9 +51,9 @@ struct SyntaxGenerators {
 
         let identifierText = identifier.text
         let methodName = "set\(identifierText.prefix(1).uppercased())\(identifierText.dropFirst())"
-        let headerPrefix = if isPublic { "public " } else { "" }
+        let headerPrefix: SyntaxNodeString = if isPublic { "public " } else { "" }
         let header = SyntaxNodeString(
-            "\(raw: headerPrefix)func \(raw: methodName)(_ \(identifier): \(typeAnnotation)) -> \(returnType)"
+            "\(headerPrefix)func \(raw: methodName)(_ \(identifier): \(typeAnnotation.fullType)) -> \(returnType)"
         )
         return try FunctionDeclSyntax(header, bodyBuilder: {
             body(identifier)

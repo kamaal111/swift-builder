@@ -29,13 +29,13 @@ struct SyntaxExtractor {
     }
 
     static func extractVariableNamesAndTypeAnnotations(_ variableDeclaration: VariableDeclSyntax) -> [
-        (identifier: TokenSyntax, typeAnnotation: TokenSyntax)
+        (identifier: TokenSyntax, typeAnnotation: TypeAnnotationInfo)
     ] {
         variableDeclaration
             .bindings
             .compactMap({ binding in
                 guard let identifier = extractIdentifier(binding) else { return nil }
-                guard let typeAnnotation = extractNonOptionalTypeAnnotation(binding) else { return nil }
+                guard let typeAnnotation = extractTypeAnnotation(binding) else { return nil }
 
                 return (identifier, typeAnnotation)
             })
@@ -45,36 +45,12 @@ struct SyntaxExtractor {
         binding.pattern.as(IdentifierPatternSyntax.self)?.identifier
     }
 
-    static func extractTypeAnnotation(_ binding: PatternBindingListSyntax.Element) -> TokenSyntax? {
+    static func extractTypeAnnotation(_ binding: PatternBindingListSyntax.Element) -> TypeAnnotationInfo? {
         guard let typeAnnotation = binding.typeAnnotation?.type else { return nil }
 
         if let optionalTypeAnnotation = typeAnnotation.as(OptionalTypeSyntax.self) {
             if let wrappedType = optionalTypeAnnotation.wrappedType.as(IdentifierTypeSyntax.self) {
-                return "\(wrappedType.name)?"
-            }
-            if let wrappedType = optionalTypeAnnotation.wrappedType.as(TupleTypeSyntax.self) {
-                return "\(wrappedType)?"
-            }
-        }
-
-        if let typeAnnotation = typeAnnotation.as(IdentifierTypeSyntax.self) {
-            return typeAnnotation.name
-        }
-
-        if let typeAnnotation = typeAnnotation.as(SomeOrAnyTypeSyntax.self),
-           let constraint = typeAnnotation.constraint.as(IdentifierTypeSyntax.self) {
-            return "\(typeAnnotation.someOrAnySpecifier) \(constraint.name)"
-        }
-
-        return nil
-    }
-
-    static func extractNonOptionalTypeAnnotation(_ binding: PatternBindingListSyntax.Element) -> TokenSyntax? {
-        guard let typeAnnotation = binding.typeAnnotation?.type else { return nil }
-
-        if let optionalTypeAnnotation = typeAnnotation.as(OptionalTypeSyntax.self) {
-            if let wrappedType = optionalTypeAnnotation.wrappedType.as(IdentifierTypeSyntax.self) {
-                return wrappedType.name
+                return TypeAnnotationInfo(name: wrappedType.name, fullType: "\(wrappedType.name)?", isOptional: true)
             }
 
             if let wrappedType = optionalTypeAnnotation.wrappedType.as(TupleTypeSyntax.self) {
@@ -84,19 +60,19 @@ struct SyntaxExtractor {
                         .constraint
                         .as(IdentifierTypeSyntax.self)
                     if let constraint {
-                        return constraint.name
+                        return TypeAnnotationInfo(name: constraint.name, fullType: "\(wrappedType)?", isOptional: true)
                     }
                 }
             }
         }
 
         if let typeAnnotation = typeAnnotation.as(IdentifierTypeSyntax.self) {
-            return typeAnnotation.name
+            return TypeAnnotationInfo(name: typeAnnotation.name, fullType: typeAnnotation.name, isOptional: false)
         }
 
         if let typeAnnotation = typeAnnotation.as(SomeOrAnyTypeSyntax.self),
            let constraint = typeAnnotation.constraint.as(IdentifierTypeSyntax.self) {
-            return constraint.name
+            return TypeAnnotationInfo(name: constraint.name, fullType: constraint.name, isOptional: false)
         }
 
         return nil
