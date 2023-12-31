@@ -52,7 +52,18 @@ final class BuilderSnapshotTests: XCTestCase {
         assertMacroExpansion(
             try getSnapshot(named: snapshotNameString, ofType: .source),
             expandedSource: try getSnapshot(named: snapshotNameString, ofType: .expanded),
-            diagnostics: [.init(message: "Must have atleast mutable 1 property", line: 1, column: 1)],
+            diagnostics: [.init(message: "Object must have atleast 1 property", line: 1, column: 1)],
+            macros: testMacros
+        )
+    }
+
+    func testBuilderMacroInvalidType() throws {
+        let snapshotName = try XCTUnwrap(#function.split(separator: "()").first)
+        let snapshotNameString = String(snapshotName)
+        assertMacroExpansion(
+            try getSnapshot(named: snapshotNameString, ofType: .source),
+            expandedSource: try getSnapshot(named: snapshotNameString, ofType: .expanded),
+            diagnostics: [.init(message: "Object must conform to `Buildable` protocol", line: 1, column: 1)],
             macros: testMacros
         )
     }

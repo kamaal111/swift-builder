@@ -11,9 +11,9 @@ import SwiftSyntaxMacros
 struct SyntaxExtractor {
     private init() { }
 
-    static func extractVariableDeclarations(_ classDecleration: ClassDeclSyntax) -> [VariableDeclSyntax] {
+    static func extractVariableDeclarations(_ declarationGroup: some DeclGroupSyntax) -> [VariableDeclSyntax] {
         var variableDeclarations = [VariableDeclSyntax]()
-        for member in classDecleration.memberBlock.members {
+        for member in declarationGroup.memberBlock.members {
             guard let variableDeclaration = member.decl.as(VariableDeclSyntax.self) else { continue }
 
             variableDeclarations.append(variableDeclaration)

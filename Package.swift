@@ -33,6 +33,7 @@ let package = Package(
         .testTarget(
             name: "SwiftBuilderTests",
             dependencies: [
+                "SwiftBuilder",
                 "SwiftBuilderMacros",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
             ],

@@ -12,11 +12,13 @@ import SwiftSyntaxBuilder
 enum BuilderErrors: CustomStringConvertible, Error {
     case unsupportedType
     case insufficientProperties
+    case invalidType
 
     var description: String {
         switch self {
         case .unsupportedType: "@\(String(describing: Builder.self)) only supports classes"
-        case .insufficientProperties: "Must have atleast mutable 1 property"
+        case .insufficientProperties: "Object must have atleast 1 property"
+        case .invalidType: "Object must conform to `Buildable` protocol"
         }
     }
 }
@@ -32,15 +34,26 @@ public struct Builder: MemberMacro {
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         var objectName: TokenSyntax?
-        var variableDeclarations: [VariableDeclSyntax]?
+        // TODO: Support struct as well
         if let classDecleration = declaration.as(ClassDeclSyntax.self) {
             objectName = classDecleration.name
-            variableDeclarations = SyntaxExtractor.extractVariableDeclarations(classDecleration)
         }
+        guard let objectName else { throw BuilderErrors.unsupportedType }
 
-        // TODO: Support struct as well
+        let inheritsBuildable = declaration
+            .inheritanceClause?
+            .inheritedTypes
+            .first(where: { inheritedType in
+                let inheritedTypeText = inheritedType
+                    .type
+                    .as(IdentifierTypeSyntax.self)?
+                    .name
+                    .text
+                return inheritedTypeText == "Buildable"
+            }) != nil
+        guard inheritsBuildable else { throw BuilderErrors.invalidType }
 
-        guard let variableDeclarations, let objectName else { throw BuilderErrors.unsupportedType }
+        let variableDeclarations = SyntaxExtractor.extractVariableDeclarations(declaration)
         guard !variableDeclarations.isEmpty else { throw BuilderErrors.insufficientProperties }
 
         let variableNames = variableDeclarations

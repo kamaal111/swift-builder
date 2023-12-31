@@ -1,2 +1,2 @@
 @Builder
-class ClassWithInsufficientProperties { }
+class ClassWithInsufficientProperties: Buildable { }
