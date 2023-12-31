@@ -33,12 +33,8 @@ public struct Builder: MemberMacro {
     ) throws -> [DeclSyntax] {
         var objectName: TokenSyntax?
         var variableDeclarations: [VariableDeclSyntax]?
-        var isPublic = false
         if let classDecleration = declaration.as(ClassDeclSyntax.self) {
             objectName = classDecleration.name
-            let publicModifier = classDecleration.modifiers
-                .first(where: { modifier in modifier.name.text == "public" })
-            isPublic = publicModifier != nil
             variableDeclarations = SyntaxExtractor.extractVariableDeclarations(classDecleration)
         }
 
@@ -49,6 +45,8 @@ public struct Builder: MemberMacro {
 
         let variableNames = variableDeclarations
             .flatMap({ variableDeclaration in SyntaxExtractor.extractVariableNames(variableDeclaration) })
+        let isPublic = declaration.modifiers
+            .first(where: { modifier in modifier.name.text == "public" }) != nil
         let propertiesEnum = try SyntaxGenerators.generatePropertiesEnum(
             variableNames,
             named: PROPERTIES_ENUM_NAME,
@@ -86,6 +84,10 @@ public struct Builder: MemberMacro {
             containerPropertyName: BUILDER_CONTAINER_NAME,
             isPublic: isPublic
         )
+        let variableNamesAndTypeAnnotations = variableDeclarations
+            .flatMap({ variableDeclaration in
+                SyntaxExtractor.extractVariableNamesAndTypeAnnotations(variableDeclaration)
+            })
         let publicPrefixIfIsPublic: SyntaxNodeString = if isPublic { "public " } else { "" }
         return try ClassDeclSyntax("\(publicPrefixIfIsPublic)class \(BUILDER_NAME)") {
             try VariableDeclSyntax("private var \(BUILDER_CONTAINER_NAME) = [\(PROPERTIES_ENUM_NAME): Any]()")
@@ -96,6 +98,18 @@ public struct Builder: MemberMacro {
             try FunctionDeclSyntax("\(publicPrefixIfIsPublic)func build() throws -> \(objectName)") {
                 try GuardStmtSyntax("guard \(objectName).validate(container) else") {
                     "throw BuilderErrors.validationError"
+                }
+                try ForStmtSyntax("for (key, value) in container") {
+                    try SwitchExprSyntax("switch key") {
+                        for (variableName, typeAnnotations) in variableNamesAndTypeAnnotations {
+                            SwitchCaseSyntax("""
+                            case .\(variableName):
+                                if !(value is \(typeAnnotations)) {
+                                    throw BuilderErrors.validationError
+                                }
+                            """)
+                        }
+                    }
                 }
                 CodeBlockItemListSyntax("return \(objectName).build(container)")
             }

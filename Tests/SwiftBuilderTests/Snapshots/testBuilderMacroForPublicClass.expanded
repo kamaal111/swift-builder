@@ -56,6 +56,26 @@ public class SimpleObject: Buildable {
             guard SimpleObject.validate(container) else {
                 throw BuilderErrors.validationError
             }
+            for (key, value) in container {
+                switch key {
+                case .id:
+                    if !(value is UUID) {
+                        throw BuilderErrors.validationError
+                    }
+                case .name:
+                    if !(value is String) {
+                        throw BuilderErrors.validationError
+                    }
+                case .protocolUser:
+                    if !(value is SimpleProtocol) {
+                        throw BuilderErrors.validationError
+                    }
+                case .numberOfStuff:
+                    if !(value is Int) {
+                        throw BuilderErrors.validationError
+                    }
+                }
+            }
             return SimpleObject.build(container)
         }
     }

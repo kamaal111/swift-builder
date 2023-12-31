@@ -20,27 +20,15 @@ public class SimpleLazyObject: Buildable {
     }
 
     public static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
-        for (key, value) in container {
-            switch key {
-            case .id:
-                if !(value is UUID) {
-                    return false
-                }
-            case .name:
-                if !(value is String) {
-                    return false
-                }
-            case .protocolUser:
-                if !(value is SimpleProtocol) {
-                    return false
-                }
-            }
-        }
-        return true
+        true
     }
 
     public static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleLazyObject {
-        SimpleLazyObject(name: container[.name] as? String, id: container[.id] as? UUID)
+        SimpleLazyObject(
+            name: container[.name] as? String,
+            id: container[.id] as? UUID,
+            protocolUser: container[.protocolUser] as? SimpleProtocol
+        )
     }
 }
 

@@ -28,6 +28,19 @@ struct SyntaxExtractor {
             .compactMap({ binding in extractIdentifier(binding) })
     }
 
+    static func extractVariableNamesAndTypeAnnotations(_ variableDeclaration: VariableDeclSyntax) -> [
+        (identifier: TokenSyntax, typeAnnotation: TokenSyntax)
+    ] {
+        variableDeclaration
+            .bindings
+            .compactMap({ binding in
+                guard let identifier = extractIdentifier(binding) else { return nil }
+                guard let typeAnnotation = extractNonOptionalTypeAnnotation(binding) else { return nil }
+
+                return (identifier, typeAnnotation)
+            })
+    }
+
     static func extractIdentifier(_ binding: PatternBindingListSyntax.Element) -> TokenSyntax? {
         binding.pattern.as(IdentifierPatternSyntax.self)?.identifier
     }
@@ -51,6 +64,39 @@ struct SyntaxExtractor {
         if let typeAnnotation = typeAnnotation.as(SomeOrAnyTypeSyntax.self),
            let constraint = typeAnnotation.constraint.as(IdentifierTypeSyntax.self) {
             return "\(typeAnnotation.someOrAnySpecifier) \(constraint.name)"
+        }
+
+        return nil
+    }
+
+    static func extractNonOptionalTypeAnnotation(_ binding: PatternBindingListSyntax.Element) -> TokenSyntax? {
+        guard let typeAnnotation = binding.typeAnnotation?.type else { return nil }
+
+        if let optionalTypeAnnotation = typeAnnotation.as(OptionalTypeSyntax.self) {
+            if let wrappedType = optionalTypeAnnotation.wrappedType.as(IdentifierTypeSyntax.self) {
+                return wrappedType.name
+            }
+
+            if let wrappedType = optionalTypeAnnotation.wrappedType.as(TupleTypeSyntax.self) {
+                if let firstElementType = wrappedType.elements.first?.type {
+                    let constraint = firstElementType
+                        .as(SomeOrAnyTypeSyntax.self)?
+                        .constraint
+                        .as(IdentifierTypeSyntax.self)
+                    if let constraint {
+                        return constraint.name
+                    }
+                }
+            }
+        }
+
+        if let typeAnnotation = typeAnnotation.as(IdentifierTypeSyntax.self) {
+            return typeAnnotation.name
+        }
+
+        if let typeAnnotation = typeAnnotation.as(SomeOrAnyTypeSyntax.self),
+           let constraint = typeAnnotation.constraint.as(IdentifierTypeSyntax.self) {
+            return constraint.name
         }
 
         return nil
