@@ -52,7 +52,7 @@ let id = UUID(uuidString: "BE583F78-E47F-4F86-AC67-B6161D8665BB")
 let lazilyBuiltObject = try SimpleLazyObject.Builder()
     .setId(id)
     .setName("Kamaal")
-    .setProtocoluser(OtherSimpleProtocolUser())
+    .setProtocolUser(OtherSimpleProtocolUser())
     .build()
 
 print("lazilyBuiltObject.name ->", lazilyBuiltObject.name as Any)

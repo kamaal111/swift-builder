@@ -1,0 +1,60 @@
+protocol SimpleProtocol { }
+struct SimpleProtocolUser: SimpleProtocol { }
+class SimpleObject: Buildable {
+    var id: UUID?
+    var name: String?
+    var protocolUser: (any SimpleProtocol)?
+    let numberOfStuff: Int
+
+    init(numberOfStuff: Int, id: UUID? = nil, name: String? = nil, protocolUser: SimpleProtocol?) {
+        self.numberOfStuff = numberOfStuff
+        self.id = id
+        self.name = name
+        self.protocolUser = protocolUser
+    }
+
+    static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
+        true
+    }
+
+    static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleObject {
+        SimpleObject(id: container[.id] as? UUID, name: container[.name] as? String)
+    }
+
+    typealias BuildableSelf = SimpleObject
+
+    typealias BuildableContainerProperties = BuildableProperties
+
+    enum BuildableProperties {
+        case id
+        case name
+        case protocolUser
+        case numberOfStuff
+    }
+
+    class Builder {
+        private var container = [BuildableProperties: Any] ()
+        func setId(_ id: UUID?) -> Builder {
+            self.container[.id] = id as Any
+            return self
+        }
+        func setName(_ name: String?) -> Builder {
+            self.container[.name] = name as Any
+            return self
+        }
+        func setProtocolUser(_ protocolUser: (any SimpleProtocol)?) -> Builder {
+            self.container[.protocolUser] = protocolUser as Any
+            return self
+        }
+        func setNumberOfStuff(_ numberOfStuff: Int) -> Builder {
+            self.container[.numberOfStuff] = numberOfStuff as Any
+            return self
+        }
+        func build() throws -> SimpleObject {
+            guard SimpleObject.validate(container) else {
+                throw BuilderErrors.validationError
+            }
+            return SimpleObject.build(container)
+        }
+    }
+}

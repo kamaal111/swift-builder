@@ -1,0 +1,24 @@
+protocol SimpleProtocol { }
+struct SimpleProtocolUser: SimpleProtocol { }
+@Builder
+class SimpleObject: Buildable {
+    var id: UUID?
+    var name: String?
+    var protocolUser: (any SimpleProtocol)?
+    let numberOfStuff: Int
+
+    init(numberOfStuff: Int, id: UUID? = nil, name: String? = nil, protocolUser: SimpleProtocol?) {
+        self.numberOfStuff = numberOfStuff
+        self.id = id
+        self.name = name
+        self.protocolUser = protocolUser
+    }
+
+    static func validate(_ container: [BuildableContainerProperties : Any]) -> Bool {
+        true
+    }
+
+    static func build(_ container: [BuildableContainerProperties : Any]) -> SimpleObject {
+        SimpleObject(id: container[.id] as? UUID, name: container[.name] as? String)
+    }
+}

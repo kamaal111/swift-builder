@@ -48,24 +48,31 @@ public struct Builder: MemberMacro {
             variableNames,
             named: PROPERTIES_ENUM_NAME
         )
-        let lazyBuildSelfTypeAlias = try SyntaxGenerators.generateTypeAlias(
-            name: "BuildableSelf",
-            value: objectName
+        let lazyBuildSelfTypeAlias = try TypeAliasDeclSyntax("typealias BuildableSelf = \(objectName)")
+        let lazyBuildablePropertiesTypeAlias = try TypeAliasDeclSyntax(
+            "typealias BuildableContainerProperties = \(PROPERTIES_ENUM_NAME)"
         )
-        let lazyBuildablePropertiesTypeAlias = try SyntaxGenerators.generateTypeAlias(
-            name: "BuildableContainerProperties",
-            value: PROPERTIES_ENUM_NAME
-        )
-        let setters = try SyntaxGenerators.generateDynamicSetters(
+        let builderClass = try makeBuilderClass(variableDeclarations: variableDeclarations, objectName: objectName)
+
+        return [
+            DeclSyntax(lazyBuildSelfTypeAlias),
+            DeclSyntax(lazyBuildablePropertiesTypeAlias),
+            DeclSyntax(propertiesEnum),
+            DeclSyntax(builderClass)
+        ]
+    }
+
+    private static func makeBuilderClass(
+        variableDeclarations: [VariableDeclSyntax],
+        objectName: TokenSyntax
+    ) throws -> ClassDeclSyntax{
+        let setters = try SyntaxGenerators.generateSetters(
             variableDeclarations,
             builderName: BUILDER_NAME,
             containerPropertyName: BUILDER_CONTAINER_NAME
         )
-        let builderClass = try ClassDeclSyntax("class \(BUILDER_NAME)") {
-            try SyntaxGenerators.generateInitializedPrivateProperty(
-                named: BUILDER_CONTAINER_NAME,
-                value: "[\(PROPERTIES_ENUM_NAME): Any]()"
-            )
+        return try ClassDeclSyntax("class \(BUILDER_NAME)") {
+            try VariableDeclSyntax("private var \(BUILDER_CONTAINER_NAME) = [\(PROPERTIES_ENUM_NAME): Any]()")
             for setter in setters {
                 setter
             }
@@ -76,12 +83,5 @@ public struct Builder: MemberMacro {
                 CodeBlockItemListSyntax("return \(objectName).build(container)")
             }
         }
-
-        return [
-            DeclSyntax(lazyBuildSelfTypeAlias),
-            DeclSyntax(lazyBuildablePropertiesTypeAlias),
-            DeclSyntax(propertiesEnum),
-            DeclSyntax(builderClass)
-        ]
     }
 }

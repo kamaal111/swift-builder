@@ -35,6 +35,9 @@ let package = Package(
             dependencies: [
                 "SwiftBuilderMacros",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+            ],
+            resources: [
+                .process("Snapshots")
             ]
         )
     ]

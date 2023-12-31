@@ -11,7 +11,7 @@ import SwiftSyntaxBuilder
 struct SyntaxGenerators {
     private init() { }
 
-    static func generateDynamicSetters(
+    static func generateSetters(
         _ variableDeclarations: [VariableDeclSyntax],
         builderName: TokenSyntax,
         containerPropertyName: TokenSyntax
@@ -37,14 +37,6 @@ struct SyntaxGenerators {
         }
     }
 
-    static func generateInitializedPrivateProperty(named: TokenSyntax, value: TokenSyntax) throws -> VariableDeclSyntax {
-        try VariableDeclSyntax("private var \(named) = \(value)")
-    }
-
-    static func generateTypeAlias(name: TokenSyntax, value: TokenSyntax) throws -> TypeAliasDeclSyntax {
-        try TypeAliasDeclSyntax("typealias \(name) = \(value)")
-    }
-
     private static func generateSetter(
         _ binding: PatternBindingListSyntax.Element,
         returnType: TokenSyntax,
@@ -53,8 +45,10 @@ struct SyntaxGenerators {
         guard let typeAnnotation = SyntaxExtractor.extractTypeAnnotation(binding) else { return nil }
         guard let identifier = SyntaxExtractor.extractIdentifier(binding) else { return nil }
 
+        let identifierText = identifier.text
+        let methodName = "set\(identifierText.prefix(1).uppercased())\(identifierText.dropFirst())"
         let header = SyntaxNodeString(
-            stringLiteral: "func set\(identifier.text.capitalized)(_ \(identifier): \(typeAnnotation)) -> \(returnType)"
+            stringLiteral: "func \(methodName)(_ \(identifier): \(typeAnnotation)) -> \(returnType)"
         )
         return try FunctionDeclSyntax(header, bodyBuilder: {
             body(identifier)
