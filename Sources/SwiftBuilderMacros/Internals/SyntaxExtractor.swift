@@ -56,6 +56,11 @@ enum SyntaxExtractor {
                 return TypeAnnotationInfo(name: wrappedType.name, fullType: "\(wrappedType.name)?", isOptional: true)
             }
 
+            if let wrappedType = optionalTypeAnnotation.wrappedType.as(ArrayTypeSyntax.self),
+               let identifier = wrappedType.element.as(IdentifierTypeSyntax.self) {
+                return TypeAnnotationInfo(name: "[\(identifier)]", fullType: "[\(identifier)]?", isOptional: true)
+            }
+
             if let wrappedType = optionalTypeAnnotation.wrappedType.as(TupleTypeSyntax.self) {
                 if let firstElementType = wrappedType.elements.first?.type {
                     let constraint = firstElementType
@@ -67,6 +72,11 @@ enum SyntaxExtractor {
                     }
                 }
             }
+        }
+
+        if let typeAnnotation = typeAnnotation.as(ArrayTypeSyntax.self),
+           let identifier = typeAnnotation.element.as(IdentifierTypeSyntax.self) {
+            return TypeAnnotationInfo(name: "[\(identifier)]", fullType: "[\(identifier)]", isOptional: false)
         }
 
         if let typeAnnotation = typeAnnotation.as(IdentifierTypeSyntax.self) {

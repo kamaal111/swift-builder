@@ -1,0 +1,9 @@
+@Builder
+struct SimpleObject: Buildable {
+    let names: [String]
+    var ages: [Int]?
+
+    static func build(_ container: [BuildableContainerProperties : Any]) -> TestStructObject {
+        TestStructObject(names: container[.names] as! [String], ages: container[.ages] as? [Int])
+    }
+}
