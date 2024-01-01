@@ -1,0 +1,12 @@
+@Builder
+struct SimpleObject: Buildable {
+    let age: Int
+
+    static func build(_ container: [BuildableContainerProperties : Any]) -> TestStructObject {
+        TestStructObject(age: container[.age] as! Int)
+    }
+
+    var ageString: String {
+        String(age)
+    }
+}
