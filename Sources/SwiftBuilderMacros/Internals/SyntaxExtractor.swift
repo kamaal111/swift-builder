@@ -8,13 +8,16 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
-struct SyntaxExtractor {
-    private init() { }
-
+enum SyntaxExtractor {
     static func extractVariableDeclarations(_ declarationGroup: some DeclGroupSyntax) -> [VariableDeclSyntax] {
         var variableDeclarations = [VariableDeclSyntax]()
         for member in declarationGroup.memberBlock.members {
             guard let variableDeclaration = member.decl.as(VariableDeclSyntax.self) else { continue }
+
+            let isNotSetableVariable = variableDeclaration
+                .bindings
+                .first(where: { binding in binding.accessorBlock != nil }) != nil
+            guard !isNotSetableVariable else { continue }
 
             variableDeclarations.append(variableDeclaration)
         }
