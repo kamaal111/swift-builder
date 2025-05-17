@@ -18,7 +18,7 @@ struct SimpleObject: Buildable {
     }
 
     class Builder {
-        private var container = [BuildableProperties: Any] ()
+        private var container = [BuildableProperties: Any]()
         init() {
         }
         func setAge(_ age: Int) -> Builder {
