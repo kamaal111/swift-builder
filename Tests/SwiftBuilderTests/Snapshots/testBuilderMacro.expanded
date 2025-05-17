@@ -29,7 +29,7 @@ class SimpleObject: Buildable {
     }
 
     class Builder {
-        private var container = [BuildableProperties: Any] ()
+        private var container = [BuildableProperties: Any]()
         init() {
         }
         func setId(_ id: UUID?) -> Builder {

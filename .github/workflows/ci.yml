@@ -8,13 +8,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  XCODE_APP_NAME: Xcode_15.1.app
+  XCODE_APP_NAME: Xcode_16.3.app
 
 jobs:
   test:
     name: Test
     timeout-minutes: 10
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       - name: Git - Checkout
         uses: actions/checkout@v4

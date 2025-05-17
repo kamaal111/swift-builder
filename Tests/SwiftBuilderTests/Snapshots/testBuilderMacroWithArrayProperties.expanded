@@ -16,7 +16,7 @@ struct SimpleObject: Buildable {
     }
 
     class Builder {
-        private var container = [BuildableProperties: Any] ()
+        private var container = [BuildableProperties: Any]()
         init() {
         }
         func setNames(_ names: [String]) -> Builder {
